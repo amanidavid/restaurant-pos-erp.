@@ -2,14 +2,18 @@
 
 namespace App\Services\Landlord\Tenancy;
 
+use App\Jobs\Landlord\Tenancy\ProvisionTenantJob;
 use App\Models\Landlord\DatabaseCluster;
 use App\Models\Landlord\Tenant;
+use App\Models\Landlord\TenantAccount;
 use App\Models\Landlord\TenantDatabase;
 use App\Models\Landlord\TenantProvisioningRun;
-use App\Jobs\Landlord\Tenancy\ProvisionTenantJob;
+use App\Models\Landlord\User;
+use App\Support\TanzaniaPhoneNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class TenantRegistrationService
@@ -21,6 +25,9 @@ class TenantRegistrationService
     public function register(array $data): array
     {
         return DB::connection('landlord')->transaction(function () use ($data): array {
+            $phone = TanzaniaPhoneNumber::normalize($data['phone'] ?? null);
+            $this->assertLoginIsAvailable($data['email'] ?? null, $phone);
+
             $cluster = DatabaseCluster::query()
                 ->where('status', 'active')
                 ->orderBy('id')
@@ -30,6 +37,18 @@ class TenantRegistrationService
                 throw new RuntimeException('No active database cluster is configured.');
             }
 
+            $passwordHash = Hash::make($data['password']);
+            $user = User::query()->create([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'display_name' => trim($data['first_name'].' '.$data['last_name']),
+                'email' => $data['email'] ?? null,
+                'phone' => $phone,
+                'password' => $passwordHash,
+                'status' => 'active',
+                'password_changed_at' => Carbon::now(),
+            ]);
+
             $tenant = Tenant::query()->create([
                 'legal_name' => $data['business_name'],
                 'trading_name' => $data['business_name'],
@@ -38,8 +57,16 @@ class TenantRegistrationService
                 'locale' => 'en',
                 'currency_code' => 'TZS',
                 'email' => $data['email'] ?? null,
-                'phone' => $this->normalizeTanzaniaPhone($data['phone'] ?? null),
+                'phone' => $phone,
                 'status' => 'provisioning',
+            ]);
+
+            TenantAccount::query()->create([
+                'user_id' => $user->id,
+                'tenant_id' => $tenant->id,
+                'status' => 'active',
+                'is_owner' => true,
+                'joined_at' => Carbon::now(),
             ]);
 
             TenantDatabase::query()->create([
@@ -66,8 +93,8 @@ class TenantRegistrationService
                         'email' => $data['email'] ?? null,
                         'email_normalized' => $data['email'] ?? null,
                         'phone' => $data['phone'] ?? null,
-                        'phone_normalized' => $this->normalizeTanzaniaPhone($data['phone'] ?? null),
-                        'password_hash' => Hash::make($data['password']),
+                        'phone_normalized' => $phone,
+                        'password_hash' => $passwordHash,
                     ],
                     'company' => [
                         'name' => $data['business_name'],
@@ -98,27 +125,21 @@ class TenantRegistrationService
         return 'rmis_tenant_'.str_pad((string) $tenant->id, 1, '0', STR_PAD_LEFT);
     }
 
-    private function normalizeTanzaniaPhone(mixed $value): ?string
+    private function assertLoginIsAvailable(?string $email, ?string $phone): void
     {
-        if (! is_string($value) || trim($value) === '') {
-            return null;
+        $errors = [];
+
+        if ($email && User::query()->whereRaw('LOWER(email) = ?', [strtolower($email)])->exists()) {
+            $errors['email'] = ['An account already exists with this email address. Please sign in instead.'];
         }
 
-        $digits = preg_replace('/\D+/', '', $value) ?? '';
-
-        if (str_starts_with($digits, '0')) {
-            $digits = '255'.substr($digits, 1);
+        if ($phone && User::query()->where('phone', $phone)->exists()) {
+            $errors['phone'] = ['An account already exists with this phone number. Please sign in instead.'];
         }
 
-        if (str_starts_with($digits, '255')) {
-            return '+'.$digits;
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
         }
-
-        if (preg_match('/^[67]\d{8}$/', $digits) === 1) {
-            return '+255'.$digits;
-        }
-
-        return '+'.$digits;
     }
 
     /**

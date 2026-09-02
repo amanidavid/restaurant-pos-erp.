@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/inventory/stock-counts"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "branch_uuid": "{{branch_uuid}}",
+        "warehouse_uuid": "{{warehouse_uuid}}",
+        "counted_on": "2026-09-02",
+        "notes": "Routine count.",
+        "items": [
+            {
+                "ingredient_uuid": "{{ingredient_uuid}}",
+                "location_uuid": null,
+                "unit_uuid": "{{unit_uuid}}",
+                "counted_quantity": "10.0000"
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('stock_count_uuid', json.data.uuid);
+    language: text/javascript
+order: 19000

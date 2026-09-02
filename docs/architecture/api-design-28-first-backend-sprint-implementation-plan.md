@@ -440,21 +440,20 @@ Endpoint:
 POST /api/v1/web/auth/login
 ```
 
-Headers:
-
-```text
-X-Tenant-UUID: tenant uuid
-```
-
 Request:
 
 ```json
 {
   "login": "asha@example.com",
   "password": "secret-password",
-  "device_name": "POS Tablet 1"
+  "device_name": "POS Tablet 1",
+  "tenant_uuid": null
 }
 ```
+
+`tenant_uuid` is optional and is never typed by a normal user. The client only
+sends it after choosing from the returned workspace list when the account has
+more than one active membership.
 
 `login` can be:
 
@@ -466,10 +465,13 @@ phone
 Login must:
 
 ```text
-verify tenant UUID exists
-connect to tenant database
-find user by email_normalized or phone_normalized
+find the central landlord user by normalized email or phone
 verify password
+load active tenant_accounts memberships
+automatically select the tenant when exactly one is available
+return workspace selection when multiple tenants are available
+verify any selected tenant UUID belongs to the authenticated user
+connect to tenant database
 check user status
 enforce single active session
 issue JWT token

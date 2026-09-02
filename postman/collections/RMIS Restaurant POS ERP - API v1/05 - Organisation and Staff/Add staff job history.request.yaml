@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/staff/users/{{tenant_user_uuid}}/job-history"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "branch_uuid": "{{branch_uuid}}",
+        "department_uuid": "{{department_uuid}}",
+        "job_position_uuid": "{{job_position_uuid}}",
+        "employment_type_uuid": "{{employment_type_uuid}}",
+        "base_salary_amount": "1200000.00",
+        "effective_from": "2026-09-01",
+        "reason": "Initial appointment."
+    }
+order: 13000

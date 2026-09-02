@@ -1,0 +1,74 @@
+name: RMIS Local
+values:
+  - key: base_url
+    value: 'http://localhost:8000'
+  - key: tenant_uuid
+    value: ''
+  - key: access_token
+    value: ''
+  - key: login
+    value: owner@example.test
+  - key: password
+    value: ''
+  - key: new_password
+    value: ''
+  - key: otp
+    value: ''
+  - key: per_page
+    value: '15'
+  - key: provisioning_run_uuid
+    value: ''
+  - key: branch_uuid
+    value: ''
+  - key: to_branch_uuid
+    value: ''
+  - key: business_day_uuid
+    value: ''
+  - key: role_uuid
+    value: ''
+  - key: permission_uuid
+    value: ''
+  - key: tenant_user_uuid
+    value: ''
+  - key: department_uuid
+    value: ''
+  - key: employment_type_uuid
+    value: ''
+  - key: job_position_uuid
+    value: ''
+  - key: unit_uuid
+    value: ''
+  - key: tax_code_uuid
+    value: ''
+  - key: menu_category_uuid
+    value: ''
+  - key: ingredient_uuid
+    value: ''
+  - key: kitchen_section_uuid
+    value: ''
+  - key: menu_item_uuid
+    value: ''
+  - key: component_menu_item_uuid
+    value: ''
+  - key: modifier_group_uuid
+    value: ''
+  - key: branch_menu_item_uuid
+    value: ''
+  - key: warehouse_uuid
+    value: ''
+  - key: to_warehouse_uuid
+    value: ''
+  - key: location_uuid
+    value: ''
+  - key: movement_type_uuid
+    value: ''
+  - key: stock_adjustment_uuid
+    value: ''
+  - key: stock_transfer_uuid
+    value: ''
+  - key: stock_count_uuid
+    value: ''
+  - key: menu_image_path
+    value: ''
+  - key: menu_csv_path
+    value: ''

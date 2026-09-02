@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/branches/{{branch_uuid}}/configuration"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "effective_from": "2026-09-01",
+        "business_day_opens_at": "06:00",
+        "business_day_closes_at": "23:00",
+        "allow_negative_stock": false
+    }
+order: 8000

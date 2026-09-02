@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/organisation/employment-types/{{employment_type_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Full Time",
+        "is_salary_based": true,
+        "status": "active"
+    }
+order: 6000

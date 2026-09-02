@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/branches"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Main Branch",
+        "email": "branch@example.test",
+        "phone": "+255712345678",
+        "address_line_1": "Samora Avenue",
+        "address_line_2": null,
+        "city": "Dar Es Salaam",
+        "region": "Dar Es Salaam",
+        "postal_code": "11101",
+        "latitude": -6.7924,
+        "longitude": 39.2083,
+        "opened_on": "2026-09-01",
+        "configuration": {
+            "business_day_opens_at": "06:00",
+            "business_day_closes_at": "23:00",
+            "allow_negative_stock": false
+        }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('branch_uuid', json.data.uuid);
+    language: text/javascript
+order: 4000

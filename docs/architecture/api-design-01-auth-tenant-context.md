@@ -150,24 +150,20 @@ Backend lookup rule:
 
 ## 6. Tenant selection during login
 
-Tenant must be resolved by one of these:
+Users do not type or otherwise supply a tenant UUID during normal login. The
+backend authenticates the central landlord user first and loads active
+`tenant_accounts` memberships.
 
-1. `X-Tenant-Id: <tenant-uuid>` header; or
-2. verified tenant domain.
+- one active membership is selected automatically;
+- multiple active memberships return `requires_tenant_selection: true` and a
+  list of restaurant workspaces;
+- the client repeats login with the selected `tenant_uuid` in the JSON body;
+- the backend verifies that the selected UUID belongs to the authenticated
+  user before connecting to the tenant database.
 
-Recommended rule:
-
-- platform/default domain can show the tenant selector or accept `X-Tenant-Id`;
-- custom tenant domain can resolve tenant automatically;
-- if both domain and `X-Tenant-Id` are present, both must point to the same tenant;
-- mismatch returns `400`.
-
-Example headers:
-
-```text
-Accept: application/json
-X-Tenant-Id: 018f7d9a-aaaa-7000-9000-tenantuuid
-```
+After login, protected tenant routes continue to require
+`X-Tenant-UUID: <tenant-uuid>`. The client stores this value from the login
+response and sends it silently.
 
 ## 7. Login flow
 
@@ -184,23 +180,19 @@ Queue required: no
 
 Execution order:
 
-1. Resolve tenant from `X-Tenant-Id` or domain.
-2. Validate tenant exists and status allows login.
-3. Resolve global `users` by selected email/phone.
-4. Verify password.
-5. Verify active `tenant_accounts` row for `user_id + tenant_id`.
-6. Lock the tenant account row.
-7. Expire stale active device sessions.
-8. Check one-active-device rule.
-9. If same device is refreshing/continuing, rotate token safely.
-10. If another device is active, reject with `409`.
-11. Create or update landlord `user_device_sessions`.
-12. Resolve active tenant database.
-13. Switch tenant context.
-14. Resolve tenant-local `tenant_users` by tenant account UUID.
-15. Load accessible branches from `tenant_user_branches`.
-16. Issue tenant-bound JWT.
-17. Return user, tenant, branches and token summary.
+1. Resolve global `users` by normalized email or phone.
+2. Verify password and central user status.
+3. Load active `tenant_accounts` memberships with active tenants.
+4. Automatically select one membership or return the workspace list.
+5. Verify an optional selected `tenant_uuid` belongs to the user.
+6. Validate tenant status and configure its tenant database connection.
+7. Resolve tenant-local `tenant_users` by landlord user UUID.
+8. Load accessible branches from `tenant_user_branches`.
+9. Expire stale active device sessions.
+10. Check the one-active-device rule.
+11. Create the tenant-local device session.
+12. Issue JWT.
+13. Return user, tenant, all memberships, branches and token summary.
 
 JWT should contain:
 

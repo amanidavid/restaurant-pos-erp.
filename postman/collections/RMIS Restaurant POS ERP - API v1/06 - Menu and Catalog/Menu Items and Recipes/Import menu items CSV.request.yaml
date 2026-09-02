@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-items/import"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src:
+        - "{{menu_csv_path}}"
+    - type: text
+      key: branch_uuid
+      value: "{{branch_uuid}}"
+order: 6000

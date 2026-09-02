@@ -5,12 +5,19 @@ namespace App\Http\Requests\Concerns;
 trait HasApiValidationMessages
 {
     public const SAFE_NAME_REGEX = "regex:/^[\\pL\\pM][\\pL\\pM\\s.'-]*$/u";
+
     public const SAFE_BUSINESS_NAME_REGEX = "regex:/^[\\pL\\pM][\\pL\\pM\\s.'&()\\/-]*$/u";
+
     public const SAFE_LABEL_REGEX = "regex:/^[\\pL\\pM][\\pL\\pM\\s.'&()\\/-]*$/u";
+
     public const SAFE_ADDRESS_REGEX = "regex:/^[\\pL\\pM\\pN\\s.,#'\\/-]*$/u";
+
     public const SAFE_REFERENCE_REGEX = 'regex:/^[A-Za-z0-9._\\/-]+$/';
+
     public const SAFE_SLUG_REGEX = 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
+
     public const SAFE_DEVICE_TYPE_REGEX = 'regex:/^[a-z][a-z0-9_-]{1,31}$/';
+
     public const SAFE_SEARCH_REGEX = "regex:/^[\\pL\\pM\\pN\\s.'\\/-]*$/u";
 
     /**
@@ -81,6 +88,7 @@ trait HasApiValidationMessages
             'email' => 'email address',
             'phone' => 'phone number',
             'branch_uuid' => 'branch',
+            'tenant_uuid' => 'restaurant workspace',
             'role_uuids' => 'roles',
             'role_uuids.*' => 'role',
             'permission_uuids' => 'permissions',

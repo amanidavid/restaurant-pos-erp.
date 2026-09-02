@@ -16,8 +16,11 @@ class AuthSessionResource extends JsonResource
         $tenantUser = $this->resource['tenant_user'];
 
         return [
+            'requires_tenant_selection' => false,
             // The workspace UUID is different from the user and branch UUIDs.
-            'tenant_uuid' => $request->header('X-Tenant-UUID'),
+            'tenant_uuid' => $this->resource['tenant']->uuid,
+            'tenant' => new TenantLoginWorkspaceResource($this->resource['tenant']),
+            'tenants' => TenantLoginWorkspaceResource::collection($this->resource['tenants']),
             'access_token' => $this->resource['access_token'],
             'token_type' => 'bearer',
             'expires_in' => $this->resource['expires_in'],

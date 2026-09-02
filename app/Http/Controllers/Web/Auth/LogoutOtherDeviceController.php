@@ -5,23 +5,31 @@ namespace App\Http\Controllers\Web\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\Auth\LoginRequest;
 use App\Http\Resources\Web\Auth\AuthSessionResource;
-use App\Services\Landlord\Tenancy\TenantConnectionManager;
-use App\Services\Tenant\Auth\TenantLoginService;
+use App\Http\Resources\Web\Auth\TenantSelectionResource;
+use App\Services\Tenant\Auth\TenantAuthenticationService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class LogoutOtherDeviceController extends Controller
 {
     public function __construct(
-        private readonly TenantConnectionManager $tenantConnectionManager,
-        private readonly TenantLoginService $loginService,
+        private readonly TenantAuthenticationService $authenticationService,
     ) {}
 
     public function __invoke(LoginRequest $request): JsonResponse
     {
-        $this->tenantConnectionManager->connectByUuid($request->header('X-Tenant-UUID'));
+        $session = $this->authenticationService->authenticate(
+            $request->validated(),
+            $request->header('X-Tenant-UUID'),
+            replaceActiveSession: true,
+        );
 
-        $session = $this->loginService->login($request->validated(), replaceActiveSession: true);
+        if ($session['requires_tenant_selection']) {
+            return ApiResponse::resource(
+                new TenantSelectionResource($session),
+                'Choose a restaurant workspace to continue.',
+            );
+        }
 
         return ApiResponse::resource(
             new AuthSessionResource($session),

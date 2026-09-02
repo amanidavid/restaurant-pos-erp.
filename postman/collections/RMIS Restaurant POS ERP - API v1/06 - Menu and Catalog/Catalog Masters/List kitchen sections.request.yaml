@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/kitchen-sections?per_page={{per_page}}&branch_uuid={{branch_uuid}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  per_page: "{{per_page}}"
+  branch_uuid: "{{branch_uuid}}"
+order: 13000

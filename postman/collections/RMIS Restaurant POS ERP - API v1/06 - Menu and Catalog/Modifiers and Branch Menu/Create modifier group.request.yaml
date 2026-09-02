@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/modifier-groups"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Extra Sides",
+        "description": "Optional side dishes.",
+        "min_select": 0,
+        "max_select": 2,
+        "is_required": false,
+        "status": "active",
+        "options": [
+            {
+                "name": "Extra Salad",
+                "tax_code_uuid": "{{tax_code_uuid}}",
+                "price_delta": "2000.00",
+                "is_default": false,
+                "is_active": true,
+                "sort_order": 1
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('modifier_group_uuid', json.data.uuid);
+    language: text/javascript
+order: 2000

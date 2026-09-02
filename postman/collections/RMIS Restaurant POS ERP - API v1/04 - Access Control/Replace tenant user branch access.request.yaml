@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/access/users/{{tenant_user_uuid}}/branches"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "branches": [
+            {
+                "branch_uuid": "{{branch_uuid}}",
+                "is_primary": true,
+                "valid_from": "2026-09-02",
+                "valid_to": null
+            }
+        ]
+    }
+order: 11000

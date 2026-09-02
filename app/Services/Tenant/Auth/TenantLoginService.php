@@ -5,6 +5,7 @@ namespace App\Services\Tenant\Auth;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\User;
+use App\Support\TanzaniaPhoneNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,17 +22,12 @@ class TenantLoginService
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function login(array $data, bool $replaceActiveSession = false): array
-    {
-        $user = $this->findUser((string) $data['login']);
-
-        if (! $user || ! Hash::check((string) $data['password'], (string) $user->password)) {
-            throw new UnauthorizedHttpException('', 'Invalid login details.');
-        }
-
-        if ($user->status !== 'active') {
-            throw new AccessDeniedHttpException('This user account is not active.');
-        }
+    public function login(
+        array $data,
+        bool $replaceActiveSession = false,
+        ?User $authenticatedUser = null,
+    ): array {
+        $user = $authenticatedUser ?? $this->authenticate($data);
 
         $tenantUser = $user->tenantUser;
 
@@ -52,7 +48,6 @@ class TenantLoginService
             $tenantUser,
             $branches,
             $activeBranch,
-            $data,
             $replaceActiveSession
         ): array {
             DB::connection('tenant')
@@ -143,18 +138,34 @@ class TenantLoginService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function authenticate(array $data): User
+    {
+        $user = $this->findUser((string) $data['login']);
+
+        if (! $user || ! Hash::check((string) $data['password'], (string) $user->password)) {
+            throw new UnauthorizedHttpException('', 'Invalid login details.');
+        }
+
+        if ($user->status !== 'active') {
+            throw new AccessDeniedHttpException('This user account is not active.');
+        }
+
+        return $user;
+    }
+
     private function findUser(string $login): ?User
     {
         if (Str::contains($login, '@')) {
             return User::query()
                 ->whereRaw('LOWER(email) = ?', [Str::lower(trim($login))])
-                ->with('tenantUser')
                 ->first();
         }
 
         return User::query()
-            ->where('phone', $this->normalizeTanzaniaPhone($login))
-            ->with('tenantUser')
+            ->where('phone', TanzaniaPhoneNumber::normalize($login))
             ->first();
     }
 
@@ -190,20 +201,5 @@ class TenantLoginService
         }
 
         return $branch;
-    }
-
-    private function normalizeTanzaniaPhone(string $value): string
-    {
-        $digits = preg_replace('/\D+/', '', $value) ?? '';
-
-        if (str_starts_with($digits, '0')) {
-            $digits = '255'.substr($digits, 1);
-        }
-
-        if (preg_match('/^[67]\d{8}$/', $digits) === 1) {
-            $digits = '255'.$digits;
-        }
-
-        return '+'.$digits;
     }
 }

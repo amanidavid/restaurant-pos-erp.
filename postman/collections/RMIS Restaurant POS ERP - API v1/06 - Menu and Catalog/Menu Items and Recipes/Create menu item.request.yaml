@@ -1,0 +1,39 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-items"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Beef Pilau",
+        "sku": "MENU-PILAU",
+        "menu_category_uuid": "{{menu_category_uuid}}",
+        "tax_code_uuid": "{{tax_code_uuid}}",
+        "description": "Beef pilau served with salad.",
+        "allows_open_price": false,
+        "is_combo": false,
+        "is_active": true,
+        "branches": [
+            {
+                "branch_uuid": "{{branch_uuid}}",
+                "kitchen_section_uuid": "{{kitchen_section_uuid}}",
+                "price": "15000.00",
+                "cost_price": "6500.00",
+                "preparation_minutes": 20,
+                "is_available": true,
+                "is_visible": true,
+                "sort_order": 1
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('menu_item_uuid', json.data.uuid);
+    language: text/javascript
+order: 2000

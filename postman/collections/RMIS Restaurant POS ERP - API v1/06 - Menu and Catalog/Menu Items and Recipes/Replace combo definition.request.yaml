@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-items/{{menu_item_uuid}}/combo"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "is_active": true,
+        "items": [
+            {
+                "component_menu_item_uuid": "{{component_menu_item_uuid}}",
+                "quantity": 1,
+                "is_required": true,
+                "sort_order": 1
+            }
+        ]
+    }
+order: 10000

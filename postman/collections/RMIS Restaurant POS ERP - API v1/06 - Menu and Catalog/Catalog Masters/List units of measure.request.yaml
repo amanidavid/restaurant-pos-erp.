@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/units-of-measure?per_page={{per_page}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  per_page: "{{per_page}}"
+order: 1000

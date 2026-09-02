@@ -1,0 +1,29 @@
+$kind: http-request
+description: Authenticates centrally and resolves a single active restaurant workspace automatically. If multiple workspaces are returned, repeat login with the selected tenant_uuid in the JSON body.
+url: "{{base_url}}/api/v1/web/auth/login"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "login": "{{login}}",
+        "password": "{{password}}",
+        "device_name": "Postman Desktop",
+        "device_type": "desktop",
+        "branch_uuid": "{{branch_uuid}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);
+      if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);
+      if (json.data && json.data.tenant_user && json.data.tenant_user.uuid) pm.environment.set('tenant_user_uuid', json.data.tenant_user.uuid);
+      if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);
+    language: text/javascript
+order: 3000

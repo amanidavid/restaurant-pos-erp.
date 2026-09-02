@@ -1,0 +1,10 @@
+$kind: http-request
+description: Returns a CSV file rather than JSON.
+url: "{{base_url}}/api/v1/web/menu-items/export?branch_uuid={{branch_uuid}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  branch_uuid: "{{branch_uuid}}"
+order: 5000

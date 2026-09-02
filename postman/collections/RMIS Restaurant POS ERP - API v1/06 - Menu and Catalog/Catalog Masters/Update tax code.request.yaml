@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/tax-codes/{{tax_code_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "VAT 18%",
+        "rate_percentage": "18.0000",
+        "is_inclusive": true,
+        "status": "active"
+    }
+order: 6000

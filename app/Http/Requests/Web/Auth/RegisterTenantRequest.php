@@ -3,8 +3,11 @@
 namespace App\Http\Requests\Web\Auth;
 
 use App\Http\Requests\Concerns\HasApiValidationMessages;
+use App\Models\Landlord\User;
+use App\Support\TanzaniaPhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class RegisterTenantRequest extends FormRequest
 {
@@ -24,8 +27,21 @@ class RegisterTenantRequest extends FormRequest
             'business_name' => ['required', 'string', 'max:180', self::SAFE_BUSINESS_NAME_REGEX],
             'first_name' => ['required', 'string', 'max:80', self::SAFE_NAME_REGEX],
             'last_name' => ['required', 'string', 'max:80', self::SAFE_NAME_REGEX],
-            'email' => ['nullable', 'required_without:phone', 'email:rfc', 'max:254'],
-            'phone' => ['nullable', 'required_without:email', 'string', 'max:20', 'regex:/^(?:\+?255|0)?[67]\d{8}$/'],
+            'email' => [
+                'nullable',
+                'required_without:phone',
+                'email:rfc',
+                'max:254',
+                Rule::unique(User::class, 'email'),
+            ],
+            'phone' => [
+                'nullable',
+                'required_without:email',
+                'string',
+                'max:20',
+                'regex:/^\+255[67]\d{8}$/',
+                Rule::unique(User::class, 'phone'),
+            ],
             'password' => ['required', 'string', 'confirmed', 'min:8', 'max:120'],
         ];
     }
@@ -37,6 +53,8 @@ class RegisterTenantRequest extends FormRequest
     {
         return [
             'phone.regex' => 'Please enter a valid Tanzanian phone number.',
+            'email.unique' => 'An account already exists with this email address. Please sign in instead.',
+            'phone.unique' => 'An account already exists with this phone number. Please sign in instead.',
             'email.required_without' => 'Please provide either an email address or phone number.',
             'phone.required_without' => 'Please provide either a phone number or email address.',
         ];
@@ -49,7 +67,7 @@ class RegisterTenantRequest extends FormRequest
             'first_name' => $this->normalizeName($this->input('first_name')),
             'last_name' => $this->normalizeName($this->input('last_name')),
             'email' => $this->filled('email') ? Str::lower(trim((string) $this->input('email'))) : null,
-            'phone' => $this->filled('phone') ? preg_replace('/\s+/', '', (string) $this->input('phone')) : null,
+            'phone' => TanzaniaPhoneNumber::normalize($this->input('phone')),
         ]);
     }
 

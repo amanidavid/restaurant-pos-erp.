@@ -2,9 +2,11 @@
 
 namespace App\Jobs\Landlord\Tenancy;
 
+use App\Models\Landlord\TenantAccount;
 use App\Models\Landlord\TenantDatabase;
 use App\Models\Landlord\TenantProvisioningRun;
 use App\Models\Landlord\User as LandlordUser;
+use App\Models\Tenant\TenantUserBranch;
 use App\Models\Tenant\User as TenantAuthUser;
 use Database\Seeders\Tenant\TenantDatabaseSeeder;
 use Illuminate\Bus\Queueable;
@@ -228,7 +230,7 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
                 ]);
             }
 
-            DB::connection('landlord')->table('tenant_accounts')->updateOrInsert(
+            TenantAccount::query()->updateOrCreate(
                 [
                     'user_id' => $user->id,
                     'tenant_id' => $run->tenant_id,
@@ -237,7 +239,6 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
                     'status' => 'active',
                     'is_owner' => true,
                     'joined_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
                 ],
             );
 
@@ -280,7 +281,7 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
 
     private function createBranch(TenantProvisioningRun $run): void
     {
-        $payload = $this->payload($run);
+        $owner = $this->ownerIdentity($run);
         $company = DB::connection('tenant')->table('companies')->first(['id', 'trading_name']);
 
         if (! $company) {
@@ -289,7 +290,7 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
 
         $branchName = $company->trading_name;
 
-        DB::connection('tenant')->transaction(function () use ($company, $branchName): void {
+        DB::connection('tenant')->transaction(function () use ($company, $branchName, $owner): void {
             $branchValues = [
                 'name' => $branchName,
                 'timezone' => 'Africa/Dar_es_Salaam',
@@ -320,23 +321,26 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
                 ->where('name_normalized', Str::lower($branchName))
                 ->first(['id']);
 
-            $tenantUser = DB::connection('tenant')->table('tenant_users')->first(['id']);
+            $tenantUser = DB::connection('tenant')->table('tenant_users')
+                ->where('landlord_user_uuid', $owner->uuid)
+                ->first(['id']);
 
             if (! $branch || ! $tenantUser) {
                 throw new RuntimeException('Cannot assign owner branch access before branch and tenant user exist.');
             }
 
-            DB::connection('tenant')->table('tenant_user_branches')->updateOrInsert([
-                'tenant_user_id' => $tenantUser->id,
-                'branch_id' => $branch->id,
-            ], [
-                'status' => 'active',
-                'is_primary' => true,
-                'valid_from' => Carbon::today()->toDateString(),
-                'assigned_by_id' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+            TenantUserBranch::query()->updateOrCreate(
+                [
+                    'tenant_user_id' => $tenantUser->id,
+                    'branch_id' => $branch->id,
+                ],
+                [
+                    'status' => 'active',
+                    'is_primary' => true,
+                    'valid_from' => Carbon::today()->toDateString(),
+                    'assigned_by_id' => null,
+                ],
+            );
 
             $configurationValues = [
                 'effective_from' => Carbon::today()->toDateString(),
@@ -378,7 +382,7 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
 
     private function assignOwnerRole(TenantProvisioningRun $run): void
     {
-        $user = TenantAuthUser::query()->first();
+        $user = $this->ownerIdentity($run);
         $branchId = DB::connection('tenant')->table('branches')->orderBy('id')->value('id');
         $roleId = DB::connection('tenant')->table('roles')
             ->where('name', 'business-owner')
@@ -395,6 +399,23 @@ class ProvisionTenantJob implements NotTenantAware, ShouldQueue
             'model_id' => $user->id,
             'branch_id' => $branchId,
         ]);
+    }
+
+    private function ownerIdentity(TenantProvisioningRun $run): TenantAuthUser
+    {
+        $owner = $this->payload($run)['owner'];
+        $query = TenantAuthUser::query();
+
+        if ($owner['email_normalized']) {
+            $query->whereRaw('LOWER(email) = ?', [$owner['email_normalized']]);
+        } elseif ($owner['phone_normalized']) {
+            $query->where('phone', $owner['phone_normalized']);
+        } else {
+            throw new RuntimeException('Cannot locate the owner identity without an email address or phone number.');
+        }
+
+        return $query->first()
+            ?? throw new RuntimeException('Cannot locate the landlord owner identity for this provisioning run.');
     }
 
     private function activateTenant(TenantProvisioningRun $run): void

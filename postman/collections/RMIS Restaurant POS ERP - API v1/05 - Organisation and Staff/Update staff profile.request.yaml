@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/staff/users/{{tenant_user_uuid}}/profile"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "employee_number": "EMP-0001",
+        "employment_type_uuid": "{{employment_type_uuid}}",
+        "home_branch_uuid": "{{branch_uuid}}",
+        "department_uuid": "{{department_uuid}}",
+        "job_position_uuid": "{{job_position_uuid}}",
+        "date_of_birth": "1995-01-15",
+        "hired_on": "2026-09-01",
+        "confirmed_on": null,
+        "ended_on": null,
+        "employment_status": "active",
+        "gender": "female",
+        "national_id_number": null,
+        "tax_number": null,
+        "nssf_number": null,
+        "nhif_number": null
+    }
+order: 11000

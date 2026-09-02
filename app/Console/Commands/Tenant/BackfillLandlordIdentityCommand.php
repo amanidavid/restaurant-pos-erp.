@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Tenant;
 
 use App\Models\Landlord\Tenant;
+use App\Models\Landlord\TenantAccount;
 use App\Models\Landlord\User as LandlordUser;
 use App\Models\Tenant\User as TenantAuthUser;
 use App\Services\Landlord\Tenancy\TenantConnectionManager;
@@ -78,6 +79,7 @@ class BackfillLandlordIdentityCommand extends Command
                 'legacy.email_normalized',
                 'legacy.phone_normalized',
                 'legacy.password',
+                'tu.status',
             ])
             ->orderBy('tu.id')
             ->get();
@@ -134,18 +136,15 @@ class BackfillLandlordIdentityCommand extends Command
                     ->update(['model_id' => $landlordUser->id]);
             }
 
-            $landlordConnection->table('tenant_accounts')->updateOrInsert(
+            TenantAccount::query()->updateOrCreate(
                 [
                     'user_id' => $landlordUser->id,
                     'tenant_id' => $tenantId,
                 ],
                 [
-                    'uuid' => (string) Str::uuid7(),
                     'status' => $tenantUser->status === 'active' ? 'active' : 'suspended',
                     'is_owner' => false,
                     'joined_at' => Carbon::now(),
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
                 ],
             );
 

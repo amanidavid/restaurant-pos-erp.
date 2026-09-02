@@ -1,0 +1,12 @@
+$kind: collection
+description: Version-controlled Postman collection generated from the implemented Laravel API. Import RMIS-local.postman_environment.json, select it, register or configure a tenant UUID, then run Login. All protected requests send X-Tenant-UUID and Bearer access_token.
+scripts:
+  - type: http:beforeRequest
+    code: if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }
+    language: text/javascript
+auth:
+  - id: ab363c0e-4bd1-44c3-b157-497af95535f1
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{access_token}}"

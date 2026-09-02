@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/auth/logout"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+scripts:
+  - type: afterResponse
+    code: pm.environment.unset('access_token');
+    language: text/javascript
+order: 8000

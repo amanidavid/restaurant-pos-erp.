@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-categories/{{menu_category_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Main Courses",
+        "sort_order": 1,
+        "status": "active"
+    }
+order: 9000

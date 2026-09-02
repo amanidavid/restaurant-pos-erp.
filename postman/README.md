@@ -11,10 +11,11 @@ These files are the version-controlled source for testing the implemented API v1
 
 1. In Postman, select **Import** and import both JSON files.
 2. Select the **RMIS Local** environment.
-3. Set `base_url`, `tenant_uuid`, `login`, and `password`.
+3. Set `base_url`, `login`, and `password`. Login resolves and stores `tenant_uuid` automatically when the account has one active workspace.
 4. Run **01 - Authentication / Login**.
-5. The Login test script stores `access_token`, `tenant_user_uuid`, and the active `branch_uuid` automatically.
-6. Fill other UUID variables as resources are created. Many create requests capture their returned UUID automatically.
+5. The Login test script stores `tenant_uuid`, `access_token`, `tenant_user_uuid`, and the active `branch_uuid` automatically.
+6. If the account belongs to multiple workspaces, choose one from the returned `tenants` list and repeat Login with its `tenant_uuid` as an optional JSON field.
+7. Fill other UUID variables as resources are created. Many create requests capture their returned UUID automatically.
 
 Use only the UUID values exposed by the API. Do not place internal bigint IDs in collection routes or request bodies.
 

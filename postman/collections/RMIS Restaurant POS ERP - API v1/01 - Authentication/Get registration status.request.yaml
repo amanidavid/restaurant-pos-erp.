@@ -1,0 +1,9 @@
+$kind: http-request
+description: Poll until tenant provisioning reports a completed or failed status.
+url: "{{base_url}}/api/v1/web/auth/registration-status/{{tenant_uuid}}"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: noauth
+order: 2000

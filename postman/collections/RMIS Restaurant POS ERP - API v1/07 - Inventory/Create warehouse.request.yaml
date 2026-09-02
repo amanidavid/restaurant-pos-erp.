@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/inventory/warehouses"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "branch_uuid": "{{branch_uuid}}",
+        "name": "Main Store",
+        "type": "main",
+        "description": "Main branch stock store.",
+        "status": "active"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('warehouse_uuid', json.data.uuid);
+    language: text/javascript
+order: 2000

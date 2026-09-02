@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-items/{{menu_item_uuid}}/recipe"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Beef Pilau Recipe",
+        "yield_quantity": "1.0000",
+        "yield_unit_uuid": "{{unit_uuid}}",
+        "ingredients": [
+            {
+                "ingredient_uuid": "{{ingredient_uuid}}",
+                "unit_uuid": "{{unit_uuid}}",
+                "quantity": "0.2500",
+                "waste_percentage": "2.00",
+                "notes": null,
+                "sort_order": 1
+            }
+        ]
+    }
+order: 8000

@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/modifier-groups/{{modifier_group_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Extra Sides",
+        "min_select": 0,
+        "max_select": 2,
+        "is_required": false,
+        "status": "active"
+    }
+order: 3000

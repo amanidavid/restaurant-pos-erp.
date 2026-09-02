@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/tax-codes"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "VAT 18%",
+        "rate_percentage": "18.0000",
+        "is_inclusive": true,
+        "status": "active",
+        "effective_from": "2026-01-01",
+        "effective_to": null
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('tax_code_uuid', json.data.uuid);
+    language: text/javascript
+order: 5000

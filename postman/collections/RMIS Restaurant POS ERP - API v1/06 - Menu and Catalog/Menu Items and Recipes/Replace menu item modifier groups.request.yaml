@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/menu-items/{{menu_item_uuid}}/modifier-groups"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "modifier_groups": [
+            {
+                "modifier_group_uuid": "{{modifier_group_uuid}}",
+                "sort_order": 1,
+                "is_active": true
+            }
+        ]
+    }
+order: 11000

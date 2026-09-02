@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/auth/verify-otp"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "login": "{{login}}",
+        "otp": "{{otp}}"
+    }
+auth:
+  type: noauth
+order: 6000

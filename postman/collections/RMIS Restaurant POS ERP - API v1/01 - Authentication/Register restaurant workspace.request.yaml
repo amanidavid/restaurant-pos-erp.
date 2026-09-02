@@ -1,0 +1,29 @@
+$kind: http-request
+description: Starts landlord registration and asynchronous tenant provisioning. Email or Tanzanian phone is required.
+url: "{{base_url}}/api/v1/web/auth/register"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "business_name": "RMIS Demo Restaurant",
+        "first_name": "Amina",
+        "last_name": "Mashauri",
+        "email": "{{login}}",
+        "phone": null,
+        "password": "{{password}}",
+        "password_confirmation": "{{password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);
+      if (json.data && json.data.provisioning_run_uuid) pm.environment.set('provisioning_run_uuid', json.data.provisioning_run_uuid);
+    language: text/javascript
+order: 1000

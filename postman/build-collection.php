@@ -141,7 +141,6 @@ $auth = folder('01 - Authentication', [
     ]),
     requestItem('Login', 'POST', 'auth/login', [
         'protected' => false,
-        'tenant_header' => true,
         'body' => jsonBody([
             'login' => '{{login}}',
             'password' => '{{password}}',
@@ -151,11 +150,12 @@ $auth = folder('01 - Authentication', [
         ]),
         'tests' => [
             'const json = pm.response.json();',
+            "if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);",
             "if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);",
             "if (json.data && json.data.tenant_user && json.data.tenant_user.uuid) pm.environment.set('tenant_user_uuid', json.data.tenant_user.uuid);",
             "if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);",
         ],
-        'description' => 'Signs in to a tenant. A successful response automatically stores the access token and active branch UUID.',
+        'description' => 'Authenticates centrally and automatically resolves a single active restaurant workspace. A successful response stores the tenant UUID, access token, and active branch UUID. If multiple workspaces are returned, repeat login with the selected tenant_uuid in the JSON body.',
     ]),
     requestItem('Replace active device session', 'POST', 'auth/logout-other-device', [
         'protected' => false,
@@ -670,7 +670,7 @@ $collection = [
     'info' => [
         '_postman_id' => '8f476c61-5399-4dca-bd4c-05f16c83bf75',
         'name' => 'RMIS Restaurant POS ERP - API v1',
-        'description' => "Version-controlled Postman collection generated from the implemented Laravel API. Import RMIS-local.postman_environment.json, select it, register or configure a tenant UUID, then run Login. All protected requests send X-Tenant-UUID and Bearer access_token.",
+        'description' => "Version-controlled Postman collection generated from the implemented Laravel API. Import RMIS-local.postman_environment.json, select it, then run Login with email/phone and password. Login resolves a single active tenant automatically. All protected requests send the returned X-Tenant-UUID and Bearer access_token.",
         'schema' => 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
     ],
     'auth' => [
@@ -744,4 +744,3 @@ file_put_contents($environmentPath, json_encode($environment, $flags).PHP_EOL);
 
 echo "Created {$collectionPath}".PHP_EOL;
 echo "Created {$environmentPath}".PHP_EOL;
-

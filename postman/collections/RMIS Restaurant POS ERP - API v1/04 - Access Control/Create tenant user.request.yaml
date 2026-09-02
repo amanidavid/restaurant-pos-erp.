@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/access/users"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "first_name": "Juma",
+        "last_name": "Mashauri",
+        "email": "juma@example.test",
+        "phone": null,
+        "password": "{{new_password}}",
+        "password_confirmation": "{{new_password}}",
+        "branches": [
+            {
+                "branch_uuid": "{{branch_uuid}}",
+                "is_primary": true,
+                "valid_from": "2026-09-02",
+                "valid_to": null
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('tenant_user_uuid', json.data.uuid);
+    language: text/javascript
+order: 8000

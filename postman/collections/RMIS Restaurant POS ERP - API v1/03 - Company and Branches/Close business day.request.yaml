@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/branches/{{branch_uuid}}/business-days/{{business_day_uuid}}/close"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "counted_cash_amount": "100000.00",
+        "closing_notes": "Closed from Postman."
+    }
+order: 11000

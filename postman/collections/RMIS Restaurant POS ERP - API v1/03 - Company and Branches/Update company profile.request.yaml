@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/company"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "legal_name": "RMIS Demo Restaurant Limited",
+        "trading_name": "RMIS Demo Restaurant",
+        "tin": "123456789",
+        "vrn": "VRN123456",
+        "email": "info@example.test",
+        "phone": "+255712345678"
+    }
+order: 2000

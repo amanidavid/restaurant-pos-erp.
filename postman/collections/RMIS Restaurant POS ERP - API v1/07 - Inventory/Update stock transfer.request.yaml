@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/inventory/stock-transfers/{{stock_transfer_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "requested_on": "2026-09-02",
+        "notes": "Updated transfer request."
+    }
+order: 15000

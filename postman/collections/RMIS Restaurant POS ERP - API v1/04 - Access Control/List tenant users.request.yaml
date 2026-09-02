@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/access/users?per_page={{per_page}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  - key: per_page
+    value: "{{per_page}}"
+  - key: status
+    value: active
+    disabled: true
+  - key: search
+    value: Amina
+    disabled: true
+order: 7000

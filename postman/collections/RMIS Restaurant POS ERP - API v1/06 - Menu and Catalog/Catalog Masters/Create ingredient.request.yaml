@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/ingredients"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Rice",
+        "sku": "ING-RICE",
+        "base_unit_uuid": "{{unit_uuid}}",
+        "tax_code_uuid": "{{tax_code_uuid}}",
+        "description": "Uncooked rice.",
+        "is_active": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('ingredient_uuid', json.data.uuid);
+    language: text/javascript
+order: 11000

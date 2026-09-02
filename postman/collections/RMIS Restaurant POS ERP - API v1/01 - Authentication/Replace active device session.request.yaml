@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/auth/logout-other-device"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "login": "{{login}}",
+        "password": "{{password}}",
+        "device_name": "Postman Desktop",
+        "device_type": "desktop",
+        "branch_uuid": "{{branch_uuid}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);
+      if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);
+    language: text/javascript
+order: 4000

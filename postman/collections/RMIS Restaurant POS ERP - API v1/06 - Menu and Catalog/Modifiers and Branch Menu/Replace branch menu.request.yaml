@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/branches/{{branch_uuid}}/menu-items"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "items": [
+            {
+                "menu_item_uuid": "{{menu_item_uuid}}",
+                "kitchen_section_uuid": "{{kitchen_section_uuid}}",
+                "price": "15000.00",
+                "cost_price": "6500.00",
+                "preparation_minutes": 20,
+                "is_available": true,
+                "is_visible": true,
+                "sort_order": 1
+            }
+        ]
+    }
+order: 4000

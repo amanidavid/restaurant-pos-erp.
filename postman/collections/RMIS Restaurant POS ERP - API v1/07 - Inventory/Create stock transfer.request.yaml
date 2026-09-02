@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/inventory/stock-transfers"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "from_branch_uuid": "{{branch_uuid}}",
+        "from_warehouse_uuid": "{{warehouse_uuid}}",
+        "to_branch_uuid": "{{to_branch_uuid}}",
+        "to_warehouse_uuid": "{{to_warehouse_uuid}}",
+        "requested_on": "2026-09-02",
+        "notes": "Restock destination branch.",
+        "items": [
+            {
+                "ingredient_uuid": "{{ingredient_uuid}}",
+                "unit_uuid": "{{unit_uuid}}",
+                "quantity_requested": "5.0000"
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('stock_transfer_uuid', json.data.uuid);
+    language: text/javascript
+order: 13000

@@ -23,6 +23,7 @@ class LoginRequest extends FormRequest
         return [
             'login' => ['required', 'string', 'max:254'],
             'password' => ['required', 'string', 'max:120'],
+            'tenant_uuid' => ['nullable', 'uuid'],
             'device_name' => ['nullable', 'string', 'max:120', self::SAFE_ADDRESS_REGEX],
             'device_type' => ['nullable', 'string', 'max:32', self::SAFE_DEVICE_TYPE_REGEX],
             'branch_uuid' => ['nullable', 'uuid'],

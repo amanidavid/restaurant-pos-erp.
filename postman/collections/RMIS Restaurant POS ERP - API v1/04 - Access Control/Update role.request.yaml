@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/access/roles/{{role_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "display_name": "Inventory Supervisor",
+        "description": "Manages branch inventory operations."
+    }
+order: 4000

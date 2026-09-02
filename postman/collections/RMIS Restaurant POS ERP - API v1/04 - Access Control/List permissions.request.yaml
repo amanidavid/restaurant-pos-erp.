@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/access/permissions?per_page=100"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  per_page: "100"
+order: 1000
