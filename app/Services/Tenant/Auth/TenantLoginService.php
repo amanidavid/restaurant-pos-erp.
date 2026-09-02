@@ -2,6 +2,7 @@
 
 namespace App\Services\Tenant\Auth;
 
+use App\Exceptions\Tenant\Auth\DeviceConflictException;
 use App\Models\Tenant\Branch;
 use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\User;
@@ -13,7 +14,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class TenantLoginService
@@ -78,7 +78,7 @@ class TenantLoginService
                 ->first();
 
             if ($activeSession && ! $replaceActiveSession) {
-                throw new BadRequestHttpException('This account is already active on another device. Please logout the other device first.');
+                throw new DeviceConflictException;
             }
 
             if ($activeSession && $replaceActiveSession) {

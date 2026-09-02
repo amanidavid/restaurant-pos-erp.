@@ -33,11 +33,16 @@ class ApiResponse
         ], $status);
     }
 
-    public static function error(string $message, ?array $errors = null, int $status = 422): JsonResponse
-    {
+    public static function error(
+        string $message,
+        ?array $errors = null,
+        int $status = 422,
+        ?string $code = null,
+    ): JsonResponse {
         return response()->json([
             'success' => false,
             'message' => $message,
+            'code' => $code,
             'data' => null,
             'errors' => $errors,
         ], $status);

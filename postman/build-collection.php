@@ -159,7 +159,6 @@ $auth = folder('01 - Authentication', [
     ]),
     requestItem('Replace active device session', 'POST', 'auth/logout-other-device', [
         'protected' => false,
-        'tenant_header' => true,
         'body' => jsonBody([
             'login' => '{{login}}',
             'password' => '{{password}}',
@@ -169,9 +168,11 @@ $auth = folder('01 - Authentication', [
         ]),
         'tests' => [
             'const json = pm.response.json();',
+            "if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);",
             "if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);",
             "if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);",
         ],
+        'description' => 'Authenticates centrally, resolves a single active workspace automatically, ends its previous device session, and creates the replacement session. No tenant header is required for a single-workspace account.',
     ]),
     requestItem('Forgot password', 'POST', 'auth/forgot-password', [
         'protected' => false,

@@ -491,8 +491,21 @@ If user logs in on Device B while Device A is active:
 
 ```text
 block login
-return existing session conflict response
+return HTTP 409 with code DEVICE_CONFLICT
 allow user to choose logout other device
+```
+
+The frontend must detect this condition using the stable `code` field, not by
+matching the human-readable message:
+
+```json
+{
+  "success": false,
+  "message": "This account is already active on another device. Please logout the other device first.",
+  "code": "DEVICE_CONFLICT",
+  "data": null,
+  "errors": null
+}
 ```
 
 Endpoint:
@@ -500,6 +513,11 @@ Endpoint:
 ```text
 POST /api/v1/web/auth/logout-other-device
 ```
+
+This endpoint uses the same central credential and workspace resolution as
+login. It does not require `X-Tenant-UUID` when the account has one active
+workspace. For multiple memberships, the client reuses the workspace selected
+from the login response without asking the user to type a UUID.
 
 This should:
 

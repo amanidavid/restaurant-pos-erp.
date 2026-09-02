@@ -1,10 +1,11 @@
 <?php
 
-use App\Support\ApiMessages;
-use App\Support\ApiResponse;
+use App\Exceptions\Tenant\Auth\DeviceConflictException;
 use App\Http\Middleware\Tenant\AuthenticateTenantRequest;
 use App\Http\Middleware\Tenant\EnsureTenantSessionIsActive;
 use App\Http\Middleware\Tenant\ResolveTenantContext;
+use App\Support\ApiMessages;
+use App\Support\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,8 +16,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
@@ -97,6 +98,18 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return ApiResponse::tooManyRequests();
+        });
+
+        $exceptions->render(function (DeviceConflictException $exception, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            return ApiResponse::error(
+                message: $exception->getMessage(),
+                status: 409,
+                code: DeviceConflictException::ERROR_CODE,
+            );
         });
 
         $exceptions->render(function (BadRequestHttpException $exception, Request $request) {

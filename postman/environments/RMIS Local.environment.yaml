@@ -4,8 +4,6 @@ values:
     value: 'http://localhost:8000'
   - key: tenant_uuid
     value: ''
-  - key: access_token
-    value: ''
   - key: login
     value: owner@example.test
   - key: password
@@ -71,4 +69,6 @@ values:
   - key: menu_image_path
     value: ''
   - key: menu_csv_path
+    value: ''
+  - key: access_token
     value: ''

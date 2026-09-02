@@ -276,16 +276,10 @@ Response:
 ```json
 {
   "success": false,
-  "message": "This account is already signed in on another device.",
+  "message": "This account is already active on another device. Please logout the other device first.",
+  "code": "DEVICE_CONFLICT",
   "data": null,
-  "errors": {
-    "code": "ACTIVE_DEVICE_SESSION_EXISTS",
-    "active_session": {
-      "device_name": "Samsung Tablet Counter 1",
-      "device_type": "tablet",
-      "last_seen_at": "2026-08-24T10:15:00+03:00"
-    }
-  }
+  "errors": null
 }
 ```
 
@@ -1056,7 +1050,7 @@ Common errors:
 401 INVALID_SESSION
 403 ACCESS_DENIED
 404 TENANT_NOT_FOUND
-409 ACTIVE_DEVICE_SESSION_EXISTS
+409 DEVICE_CONFLICT
 422 VALIDATION_FAILED
 429 TOO_MANY_REQUESTS
 500 SERVER_ERROR
