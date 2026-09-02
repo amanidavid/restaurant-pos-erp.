@@ -1,0 +1,5 @@
+# Private Postman exports may contain credentials or runtime values.
+*.private.postman_environment.json
+*.postman_globals.json
+exports/
+
