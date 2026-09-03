@@ -17,14 +17,45 @@ class TenantCatalogPaymentInventorySeeder extends Seeder
 
         if (! $company) {
             $this->command?->warn('TenantCatalogPaymentInventorySeeder skipped: no company found.');
+
             return;
         }
 
         $this->seedUnits((int) $company->id);
         $this->seedTaxCodes((int) $company->id);
         $this->seedPriceList((int) $company->id, $company->base_currency_code ?? 'TZS');
+        $this->seedSalesChannels((int) $company->id);
+        $this->seedServiceTypes((int) $company->id);
         $this->seedPaymentMethods((int) $company->id);
         $this->seedStockMovementTypes();
+    }
+
+    private function seedSalesChannels(int $companyId): void
+    {
+        if (! $this->tableExists(self::CONNECTION, 'sales_channels')) {
+            return;
+        }
+
+        foreach ([['Point of Sale', 'pos'], ['Phone Order', 'phone'], ['Manual Sale', 'manual']] as [$name, $type]) {
+            $this->upsertRow(self::CONNECTION, 'sales_channels', ['company_id' => $companyId, 'name' => $name], [
+                'type' => $type,
+                'status' => 'active',
+            ]);
+        }
+    }
+
+    private function seedServiceTypes(int $companyId): void
+    {
+        if (! $this->tableExists(self::CONNECTION, 'service_types')) {
+            return;
+        }
+
+        foreach ([['Dine In', 'dine_in'], ['Takeaway', 'takeaway'], ['Delivery', 'delivery'], ['Pickup', 'pickup']] as [$name, $type]) {
+            $this->upsertRow(self::CONNECTION, 'service_types', ['company_id' => $companyId, 'name' => $name], [
+                'type' => $type,
+                'status' => 'active',
+            ]);
+        }
     }
 
     private function seedUnits(int $companyId): void

@@ -60,7 +60,10 @@ class TenantUserController extends Controller
         $this->authorize('view', [$tenantUser, $this->currentBranch()]);
 
         return ApiResponse::resource(
-            new TenantUserResource($tenantUser->load(['user', 'branchAssignments.branch'])),
+            new TenantUserResource($tenantUser->load([
+                'landlordIdentity:id,uuid,first_name,last_name,email,phone,status,last_login_at',
+                'branchAssignments.branch:id,uuid,name,status',
+            ])),
             ApiMessages::detailsRetrieved('tenant user'),
         );
     }

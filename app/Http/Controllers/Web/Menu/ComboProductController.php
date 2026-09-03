@@ -25,6 +25,12 @@ class ComboProductController extends Controller
             ->with(['menuItem:id,uuid,name', 'items.componentMenuItem:id,uuid,name,is_combo'])
             ->first();
 
+        if (! $combo) {
+            return ApiResponse::notFound(
+                message: 'Combo components have not been configured for this menu item.',
+            );
+        }
+
         return ApiResponse::resource(
             new ComboProductResource($combo),
             ApiMessages::detailsRetrieved('combo product')

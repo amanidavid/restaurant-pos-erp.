@@ -29,7 +29,10 @@ class BranchResource extends JsonResource
             'status' => $this->status,
             'opened_on' => $this->opened_on?->toDateString(),
             'closed_on' => $this->closed_on?->toDateString(),
-            'configuration' => new BranchConfigurationResource($this->whenLoaded('activeConfiguration')),
+            'configuration' => $this->whenLoaded(
+                'activeConfiguration',
+                fn ($configuration) => new BranchConfigurationResource($configuration),
+            ),
         ];
     }
 }

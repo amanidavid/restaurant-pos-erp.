@@ -87,3 +87,10 @@ Core authentication, tenant foundation, organisation, staff, inventory, menu, re
 *Next Major API Modules:*
 
 POS orders, payments, receipts, reservations, delivery, procurement, finance double-entry posting, payroll processing, notifications, reports, and administrative support APIs.
+
+*Phase 5 - POS Progress:*
+
+- POS reference-data API implemented for sales channels, service types, payment methods, counters, dining areas, and dining tables.
+- All reference lists are tenant protected, branch/company scoped, filterable, and paginated.
+- Default sales channels and service types are included in the idempotent tenant catalogue seeder.
+- Next implementation batch: order creation, pricing, item/modifier management, and order lifecycle.

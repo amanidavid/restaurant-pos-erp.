@@ -4691,6 +4691,269 @@
                     "response": []
                 }
             ]
+        },
+        {
+            "name": "08 - POS Reference Data",
+            "item": [
+                {
+                    "name": "List sales channels",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/sales-channels",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "sales-channels"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List service types",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/service-types",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "service-types"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List payment methods",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/payment-methods",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "payment-methods"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List counters",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/counters",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "counters"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List dining areas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-areas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-areas"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List dining tables",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-tables",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-tables"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "dining_area_uuid",
+                                    "value": "{{dining_area_uuid}}",
+                                    "disabled": true,
+                                    "description": null
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                }
+            ]
         }
     ],
     "event": [

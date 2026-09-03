@@ -67,6 +67,12 @@ class MenuItemController extends Controller
 
         $recipe = $menuItem->recipe()->with(['yieldUnit', 'ingredients.ingredient', 'ingredients.unit'])->first();
 
+        if (! $recipe) {
+            return ApiResponse::notFound(
+                message: 'A recipe has not been configured for this menu item.',
+            );
+        }
+
         return ApiResponse::resource(
             new RecipeResource($recipe),
             ApiMessages::detailsRetrieved('recipe')

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Web\Access\RoleController;
+use App\Http\Controllers\Web\Access\TenantUserController;
 use App\Http\Controllers\Web\Auth\ForgotPasswordController;
 use App\Http\Controllers\Web\Auth\LoginController;
 use App\Http\Controllers\Web\Auth\LogoutController;
@@ -8,8 +10,6 @@ use App\Http\Controllers\Web\Auth\RegisterTenantController;
 use App\Http\Controllers\Web\Auth\ResetPasswordController;
 use App\Http\Controllers\Web\Auth\TenantRegistrationStatusController;
 use App\Http\Controllers\Web\Auth\VerifyPasswordResetOtpController;
-use App\Http\Controllers\Web\Access\RoleController;
-use App\Http\Controllers\Web\Access\TenantUserController;
 use App\Http\Controllers\Web\Foundation\BranchConfigurationController;
 use App\Http\Controllers\Web\Foundation\BranchController;
 use App\Http\Controllers\Web\Foundation\BusinessDateController;
@@ -25,6 +25,7 @@ use App\Http\Controllers\Web\Menu\MenuItemController;
 use App\Http\Controllers\Web\Menu\MenuItemImageController;
 use App\Http\Controllers\Web\Organisation\OrganisationController;
 use App\Http\Controllers\Web\Organisation\StaffProfileController;
+use App\Http\Controllers\Web\Pos\PosReferenceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('web')
@@ -72,6 +73,13 @@ Route::prefix('web')
 
                 Route::post('auth/logout', LogoutController::class)
                     ->name('auth.logout');
+
+                Route::get('sales-channels', [PosReferenceController::class, 'salesChannels'])->name('pos.sales-channels.index');
+                Route::get('service-types', [PosReferenceController::class, 'serviceTypes'])->name('pos.service-types.index');
+                Route::get('payment-methods', [PosReferenceController::class, 'paymentMethods'])->name('pos.payment-methods.index');
+                Route::get('counters', [PosReferenceController::class, 'counters'])->name('pos.counters.index');
+                Route::get('dining-areas', [PosReferenceController::class, 'diningAreas'])->name('pos.dining-areas.index');
+                Route::get('dining-tables', [PosReferenceController::class, 'diningTables'])->name('pos.dining-tables.index');
 
                 Route::get('company', [CompanyProfileController::class, 'show'])
                     ->name('company.show');

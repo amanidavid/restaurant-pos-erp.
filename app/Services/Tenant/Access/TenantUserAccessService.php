@@ -169,7 +169,10 @@ class TenantUserAccessService
                 ]);
             }
 
-            return $tenantUser->fresh(['user', 'branchAssignments.branch']);
+            return $tenantUser->fresh([
+                'landlordIdentity:id,uuid,first_name,last_name,email,phone,status,last_login_at',
+                'branchAssignments.branch:id,uuid,name,status',
+            ]);
         });
     }
 

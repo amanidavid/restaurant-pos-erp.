@@ -667,6 +667,21 @@ $inventory = folder('07 - Inventory', [
     requestItem('Post stock count', 'POST', 'inventory/stock-counts/{{stock_count_uuid}}/post'),
 ]);
 
+$pos = folder('08 - POS Reference Data', [
+    requestItem('List sales channels', 'GET', 'sales-channels', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List service types', 'GET', 'service-types', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List payment methods', 'GET', 'payment-methods', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List counters', 'GET', 'counters', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List dining areas', 'GET', 'dining-areas', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List dining tables', 'GET', 'dining-tables', [
+        'query' => [
+            'status' => 'active',
+            'dining_area_uuid' => ['value' => '{{dining_area_uuid}}', 'disabled' => true],
+            'per_page' => '{{per_page}}',
+        ],
+    ]),
+]);
+
 $collection = [
     'info' => [
         '_postman_id' => '8f476c61-5399-4dca-bd4c-05f16c83bf75',
@@ -678,7 +693,7 @@ $collection = [
         'type' => 'bearer',
         'bearer' => [['key' => 'token', 'value' => '{{access_token}}', 'type' => 'string']],
     ],
-    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory],
+    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos],
     'event' => [[
         'listen' => 'prerequest',
         'script' => [
@@ -725,6 +740,7 @@ $environmentValues = [
     ['key' => 'stock_adjustment_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'stock_transfer_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'stock_count_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'dining_area_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_image_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_csv_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
 ];
