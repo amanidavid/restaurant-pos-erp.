@@ -682,6 +682,36 @@ $pos = folder('08 - POS Reference Data', [
     ]),
 ]);
 
+$orders = folder('09 - POS Orders', [
+    requestItem('List orders', 'GET', 'orders', ['query' => ['status' => ['value' => 'open', 'disabled' => true], 'per_page' => '{{per_page}}']]),
+    requestItem('Create order', 'POST', 'orders', [
+        'body' => jsonBody([
+            'sales_channel_uuid' => '{{sales_channel_uuid}}',
+            'service_type_uuid' => '{{service_type_uuid}}',
+            'items' => [[
+                'branch_menu_item_uuid' => '{{branch_menu_item_uuid}}',
+                'quantity' => '1.0000',
+                'modifiers' => [],
+            ]],
+        ]),
+        'tests' => $captureUuid('order_uuid'),
+    ]),
+    requestItem('Get order', 'GET', 'orders/{{order_uuid}}'),
+    requestItem('Update order', 'PATCH', 'orders/{{order_uuid}}', ['body' => jsonBody(['guest_count' => 2, 'notes' => 'Table service.'])]),
+    requestItem('Add order items', 'POST', 'orders/{{order_uuid}}/items', [
+        'body' => jsonBody([
+            'items' => [[
+                'branch_menu_item_uuid' => '{{branch_menu_item_uuid}}',
+                'quantity' => '1.0000',
+                'modifiers' => [],
+            ]],
+        ]),
+    ]),
+    requestItem('Serve order', 'POST', 'orders/{{order_uuid}}/serve', ['body' => jsonBody([])]),
+    requestItem('Close order', 'POST', 'orders/{{order_uuid}}/close', ['body' => jsonBody([])]),
+    requestItem('Cancel order', 'POST', 'orders/{{order_uuid}}/cancel', ['body' => jsonBody(['reason' => 'Customer cancelled.'])]),
+]);
+
 $collection = [
     'info' => [
         '_postman_id' => '8f476c61-5399-4dca-bd4c-05f16c83bf75',
@@ -693,7 +723,7 @@ $collection = [
         'type' => 'bearer',
         'bearer' => [['key' => 'token', 'value' => '{{access_token}}', 'type' => 'string']],
     ],
-    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos],
+    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos, $orders],
     'event' => [[
         'listen' => 'prerequest',
         'script' => [
@@ -741,6 +771,10 @@ $environmentValues = [
     ['key' => 'stock_transfer_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'stock_count_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'dining_area_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'sales_channel_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'service_type_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'branch_menu_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'order_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_image_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_csv_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
 ];

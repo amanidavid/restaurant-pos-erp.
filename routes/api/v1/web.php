@@ -25,6 +25,7 @@ use App\Http\Controllers\Web\Menu\MenuItemController;
 use App\Http\Controllers\Web\Menu\MenuItemImageController;
 use App\Http\Controllers\Web\Organisation\OrganisationController;
 use App\Http\Controllers\Web\Organisation\StaffProfileController;
+use App\Http\Controllers\Web\Pos\OrderController;
 use App\Http\Controllers\Web\Pos\PosReferenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +81,14 @@ Route::prefix('web')
                 Route::get('counters', [PosReferenceController::class, 'counters'])->name('pos.counters.index');
                 Route::get('dining-areas', [PosReferenceController::class, 'diningAreas'])->name('pos.dining-areas.index');
                 Route::get('dining-tables', [PosReferenceController::class, 'diningTables'])->name('pos.dining-tables.index');
+                Route::get('orders', [OrderController::class, 'index'])->name('pos.orders.index');
+                Route::post('orders', [OrderController::class, 'store'])->name('pos.orders.store');
+                Route::get('orders/{order}', [OrderController::class, 'show'])->name('pos.orders.show');
+                Route::patch('orders/{order}', [OrderController::class, 'update'])->name('pos.orders.update');
+                Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('pos.orders.items.add');
+                Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('pos.orders.cancel');
+                Route::post('orders/{order}/serve', [OrderController::class, 'serve'])->name('pos.orders.serve');
+                Route::post('orders/{order}/close', [OrderController::class, 'close'])->name('pos.orders.close');
 
                 Route::get('company', [CompanyProfileController::class, 'show'])
                     ->name('company.show');

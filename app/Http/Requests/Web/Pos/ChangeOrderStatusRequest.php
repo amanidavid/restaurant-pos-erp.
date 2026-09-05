@@ -9,7 +9,10 @@ class ChangeOrderStatusRequest extends FormRequest
 {
     use HasApiValidationMessages;
 
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {

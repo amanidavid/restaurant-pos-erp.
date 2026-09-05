@@ -4954,6 +4954,385 @@
                     "response": []
                 }
             ]
+        },
+        {
+            "name": "09 - POS Orders",
+            "item": [
+                {
+                    "name": "List orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "open",
+                                    "disabled": true,
+                                    "description": null
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sales_channel_uuid\": \"{{sales_channel_uuid}}\",\n    \"service_type_uuid\": \"{{service_type_uuid}}\",\n    \"items\": [\n        {\n            \"branch_menu_item_uuid\": \"{{branch_menu_item_uuid}}\",\n            \"quantity\": \"1.0000\",\n            \"modifiers\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('order_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get order",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update order",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"guest_count\": 2,\n    \"notes\": \"Table service.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add order items",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/items",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "items"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"items\": [\n        {\n            \"branch_menu_item_uuid\": \"{{branch_menu_item_uuid}}\",\n            \"quantity\": \"1.0000\",\n            \"modifiers\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Serve order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/serve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "serve"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Close order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/close",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "close"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Customer cancelled.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
         }
     ],
     "event": [

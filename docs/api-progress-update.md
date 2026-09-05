@@ -93,4 +93,7 @@ POS orders, payments, receipts, reservations, delivery, procurement, finance dou
 - POS reference-data API implemented for sales channels, service types, payment methods, counters, dining areas, and dining tables.
 - All reference lists are tenant protected, branch/company scoped, filterable, and paginated.
 - Default sales channels and service types are included in the idempotent tenant catalogue seeder.
-- Next implementation batch: order creation, pricing, item/modifier management, and order lifecycle.
+- POS order API implemented for paginated listing, creation with menu pricing and modifiers, updates, adding items, serving, closing, and cancellation.
+- Order creation reserves a branch number sequence, snapshots item/modifier pricing, calculates totals, and records status history in a transaction.
+- Postman requests for POS reference data and orders are generated from the project source.
+- Next implementation batch: payments, receipts, kitchen tickets, and order item editing.

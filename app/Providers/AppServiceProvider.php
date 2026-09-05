@@ -15,6 +15,7 @@ use App\Models\Tenant\KitchenSection;
 use App\Models\Tenant\MenuCategory;
 use App\Models\Tenant\MenuItem;
 use App\Models\Tenant\ModifierGroup;
+use App\Models\Tenant\Order;
 use App\Models\Tenant\PaymentMethod;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
@@ -46,6 +47,7 @@ use App\Policies\Tenant\Menu\UnitOfMeasurePolicy;
 use App\Policies\Tenant\Organisation\DepartmentPolicy;
 use App\Policies\Tenant\Organisation\EmploymentTypePolicy;
 use App\Policies\Tenant\Organisation\JobPositionPolicy;
+use App\Policies\Tenant\Pos\OrderPolicy;
 use App\Policies\Tenant\Pos\PosReferencePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -66,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(SalesChannel::class, PosReferencePolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(ServiceType::class, PosReferencePolicy::class);
         Gate::policy(PaymentMethod::class, PosReferencePolicy::class);
         Gate::policy(Counter::class, PosReferencePolicy::class);
