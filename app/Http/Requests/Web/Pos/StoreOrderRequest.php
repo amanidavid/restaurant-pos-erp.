@@ -3,11 +3,13 @@
 namespace App\Http\Requests\Web\Pos;
 
 use App\Http\Requests\Concerns\HasApiValidationMessages;
+use App\Http\Requests\Web\Pos\Concerns\HasOrderItemRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrderRequest extends FormRequest
 {
     use HasApiValidationMessages;
+    use HasOrderItemRules;
 
     public function authorize(): bool
     {
@@ -24,13 +26,6 @@ class StoreOrderRequest extends FormRequest
             'customer_uuid' => ['nullable', 'uuid'],
             'guest_count' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'items' => ['required', 'array', 'min:1', 'max:100'],
-            'items.*.branch_menu_item_uuid' => ['required', 'uuid'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'decimal:0,4'],
-            'items.*.notes' => ['nullable', 'string', 'max:1000'],
-            'items.*.modifiers' => ['nullable', 'array', 'max:30'],
-            'items.*.modifiers.*.modifier_option_uuid' => ['required', 'uuid', 'distinct'],
-            'items.*.modifiers.*.quantity' => ['required', 'integer', 'min:1', 'max:100'],
-        ];
+        ] + $this->orderItemRules();
     }
 }

@@ -670,7 +670,13 @@ $inventory = folder('07 - Inventory', [
 $pos = folder('08 - POS Reference Data', [
     requestItem('List sales channels', 'GET', 'sales-channels', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
     requestItem('List service types', 'GET', 'service-types', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
-    requestItem('List payment methods', 'GET', 'payment-methods', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List payment methods', 'GET', 'payment-methods', [
+        'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
+        'tests' => [
+            'const json = pm.response.json();',
+            'if (json.data && json.data[0]) pm.environment.set("payment_method_uuid", json.data[0].uuid);',
+        ],
+    ]),
     requestItem('List counters', 'GET', 'counters', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
     requestItem('List dining areas', 'GET', 'dining-areas', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
     requestItem('List dining tables', 'GET', 'dining-tables', [
@@ -694,7 +700,10 @@ $orders = folder('09 - POS Orders', [
                 'modifiers' => [],
             ]],
         ]),
-        'tests' => $captureUuid('order_uuid'),
+        'tests' => [
+            ...$captureUuid('order_uuid'),
+            'if (json.data && json.data.items && json.data.items[0]) pm.environment.set("order_item_uuid", json.data.items[0].uuid);',
+        ],
     ]),
     requestItem('Get order', 'GET', 'orders/{{order_uuid}}'),
     requestItem('Update order', 'PATCH', 'orders/{{order_uuid}}', ['body' => jsonBody(['guest_count' => 2, 'notes' => 'Table service.'])]),
@@ -707,9 +716,58 @@ $orders = folder('09 - POS Orders', [
             ]],
         ]),
     ]),
+    requestItem('Update order item', 'PATCH', 'orders/{{order_uuid}}/items/{{order_item_uuid}}', [
+        'body' => jsonBody(['quantity' => '2.0000', 'notes' => 'Updated from Postman.', 'modifiers' => []]),
+    ]),
+    requestItem('Void order item', 'POST', 'orders/{{order_uuid}}/items/{{order_item_uuid}}/void', [
+        'body' => jsonBody(['reason' => 'Customer changed the order.']),
+    ]),
+    requestItem('Send order to kitchen', 'POST', 'orders/{{order_uuid}}/send-to-kitchen', ['body' => jsonBody([])]),
+    requestItem('Serve order item', 'POST', 'orders/{{order_uuid}}/items/{{order_item_uuid}}/serve', ['body' => jsonBody([])]),
     requestItem('Serve order', 'POST', 'orders/{{order_uuid}}/serve', ['body' => jsonBody([])]),
     requestItem('Close order', 'POST', 'orders/{{order_uuid}}/close', ['body' => jsonBody([])]),
     requestItem('Cancel order', 'POST', 'orders/{{order_uuid}}/cancel', ['body' => jsonBody(['reason' => 'Customer cancelled.'])]),
+]);
+
+$kitchen = folder('10 - Kitchen Operations', [
+    requestItem('List kitchen tickets', 'GET', 'kitchen-tickets', [
+        'query' => ['per_page' => '{{per_page}}'],
+        'tests' => [
+            'const json = pm.response.json();',
+            'if (json.data && json.data[0]) {',
+            '    pm.environment.set("kitchen_ticket_uuid", json.data[0].uuid);',
+            '    if (json.data[0].items && json.data[0].items[0]) pm.environment.set("kitchen_ticket_item_uuid", json.data[0].items[0].uuid);',
+            '}',
+        ],
+    ]),
+    requestItem('Get kitchen ticket', 'GET', 'kitchen-tickets/{{kitchen_ticket_uuid}}'),
+    requestItem('Start kitchen ticket item', 'POST', 'kitchen-tickets/{{kitchen_ticket_uuid}}/items/{{kitchen_ticket_item_uuid}}/start', ['body' => jsonBody([])]),
+    requestItem('Mark kitchen ticket item ready', 'POST', 'kitchen-tickets/{{kitchen_ticket_uuid}}/items/{{kitchen_ticket_item_uuid}}/ready', ['body' => jsonBody([])]),
+]);
+
+$paymentsAndReceipts = folder('11 - Payments, Receipts and Printing', [
+    requestItem('List order payments', 'GET', 'orders/{{order_uuid}}/payments'),
+    requestItem('Record manual payment', 'POST', 'orders/{{order_uuid}}/payments', [
+        'body' => jsonBody([
+            'payment_method_uuid' => '{{payment_method_uuid}}',
+            'received_amount' => '10000.00',
+            'notes' => 'Manual payment recorded from Postman.',
+        ]),
+        'tests' => $captureUuid('payment_uuid'),
+    ]),
+    requestItem('Issue receipt', 'POST', 'orders/{{order_uuid}}/receipts', [
+        'body' => jsonBody([]),
+        'tests' => $captureUuid('receipt_uuid'),
+    ]),
+    requestItem('Get receipt', 'GET', 'receipts/{{receipt_uuid}}'),
+    requestItem('Print receipt', 'POST', 'receipts/{{receipt_uuid}}/print', [
+        'body' => jsonBody([]),
+        'tests' => $captureUuid('print_job_uuid'),
+    ]),
+    requestItem('Get print job', 'GET', 'print-jobs/{{print_job_uuid}}'),
+    requestItem('Void receipt', 'POST', 'receipts/{{receipt_uuid}}/void', [
+        'body' => jsonBody(['reason' => 'Receipt voided from Postman test.']),
+    ]),
 ]);
 
 $collection = [
@@ -723,7 +781,7 @@ $collection = [
         'type' => 'bearer',
         'bearer' => [['key' => 'token', 'value' => '{{access_token}}', 'type' => 'string']],
     ],
-    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos, $orders],
+    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos, $orders, $kitchen, $paymentsAndReceipts],
     'event' => [[
         'listen' => 'prerequest',
         'script' => [
@@ -775,6 +833,13 @@ $environmentValues = [
     ['key' => 'service_type_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'branch_menu_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'order_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'order_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'kitchen_ticket_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'kitchen_ticket_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'payment_method_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'payment_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'receipt_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'print_job_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_image_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'menu_csv_path', 'value' => '', 'enabled' => true, 'type' => 'default'],
 ];

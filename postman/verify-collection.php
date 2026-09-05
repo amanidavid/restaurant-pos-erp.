@@ -72,6 +72,12 @@ foreach (json_decode(implode(PHP_EOL, $output), true, 512, JSON_THROW_ON_ERROR) 
         '{stockAdjustment_uuid}' => '{stock_adjustment_uuid}',
         '{stockTransfer_uuid}' => '{stock_transfer_uuid}',
         '{stockCount_uuid}' => '{stock_count_uuid}',
+        '{order_uuid}' => '{order_uuid}',
+        '{orderItem_uuid}' => '{order_item_uuid}',
+        '{kitchenTicket_uuid}' => '{kitchen_ticket_uuid}',
+        '{kitchenTicketItem_uuid}' => '{kitchen_ticket_item_uuid}',
+        '{receipt_uuid}' => '{receipt_uuid}',
+        '{printJob_uuid}' => '{print_job_uuid}',
     ];
 
     $laravelRoutes[] = $method.' '.strtr($uri, $replacements);

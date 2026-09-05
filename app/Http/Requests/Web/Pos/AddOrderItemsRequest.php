@@ -3,11 +3,13 @@
 namespace App\Http\Requests\Web\Pos;
 
 use App\Http\Requests\Concerns\HasApiValidationMessages;
+use App\Http\Requests\Web\Pos\Concerns\HasOrderItemRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddOrderItemsRequest extends FormRequest
 {
     use HasApiValidationMessages;
+    use HasOrderItemRules;
 
     public function authorize(): bool
     {
@@ -16,6 +18,6 @@ class AddOrderItemsRequest extends FormRequest
 
     public function rules(): array
     {
-        return (new StoreOrderRequest)->rules()['items'] ?? [];
+        return $this->orderItemRules();
     }
 }

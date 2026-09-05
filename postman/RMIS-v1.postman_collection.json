@@ -4819,7 +4819,19 @@
                         },
                         "description": null
                     },
-                    "response": []
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) pm.environment.set(\"payment_method_uuid\", json.data[0].uuid);"
+                                ]
+                            }
+                        }
+                    ]
                 },
                 {
                     "name": "List counters",
@@ -5054,7 +5066,8 @@
                                 "type": "text/javascript",
                                 "exec": [
                                     "const json = pm.response.json();",
-                                    "if (json.data && json.data.uuid) pm.environment.set('order_uuid', json.data.uuid);"
+                                    "if (json.data && json.data.uuid) pm.environment.set('order_uuid', json.data.uuid);",
+                                    "if (json.data && json.data.items && json.data.items[0]) pm.environment.set(\"order_item_uuid\", json.data.items[0].uuid);"
                                 ]
                             }
                         }
@@ -5179,6 +5192,203 @@
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"items\": [\n        {\n            \"branch_menu_item_uuid\": \"{{branch_menu_item_uuid}}\",\n            \"quantity\": \"1.0000\",\n            \"modifiers\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update order item",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/items/{{order_item_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "items",
+                                "{{order_item_uuid}}"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"quantity\": \"2.0000\",\n    \"notes\": \"Updated from Postman.\",\n    \"modifiers\": []\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Void order item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/items/{{order_item_uuid}}/void",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "items",
+                                "{{order_item_uuid}}",
+                                "void"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Customer changed the order.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Send order to kitchen",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/send-to-kitchen",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "send-to-kitchen"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Serve order item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/items/{{order_item_uuid}}/serve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "items",
+                                "{{order_item_uuid}}",
+                                "serve"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -5323,6 +5533,530 @@
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"reason\": \"Customer cancelled.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "10 - Kitchen Operations",
+            "item": [
+                {
+                    "name": "List kitchen tickets",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/kitchen-tickets",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "kitchen-tickets"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) {",
+                                    "    pm.environment.set(\"kitchen_ticket_uuid\", json.data[0].uuid);",
+                                    "    if (json.data[0].items && json.data[0].items[0]) pm.environment.set(\"kitchen_ticket_item_uuid\", json.data[0].items[0].uuid);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get kitchen ticket",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/kitchen-tickets/{{kitchen_ticket_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "kitchen-tickets",
+                                "{{kitchen_ticket_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start kitchen ticket item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/kitchen-tickets/{{kitchen_ticket_uuid}}/items/{{kitchen_ticket_item_uuid}}/start",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "kitchen-tickets",
+                                "{{kitchen_ticket_uuid}}",
+                                "items",
+                                "{{kitchen_ticket_item_uuid}}",
+                                "start"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark kitchen ticket item ready",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/kitchen-tickets/{{kitchen_ticket_uuid}}/items/{{kitchen_ticket_item_uuid}}/ready",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "kitchen-tickets",
+                                "{{kitchen_ticket_uuid}}",
+                                "items",
+                                "{{kitchen_ticket_item_uuid}}",
+                                "ready"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "11 - Payments, Receipts and Printing",
+            "item": [
+                {
+                    "name": "List order payments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/payments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "payments"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Record manual payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/payments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "payments"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"received_amount\": \"10000.00\",\n    \"notes\": \"Manual payment recorded from Postman.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('payment_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Issue receipt",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/orders/{{order_uuid}}/receipts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "orders",
+                                "{{order_uuid}}",
+                                "receipts"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('receipt_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get receipt",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/receipts/{{receipt_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "receipts",
+                                "{{receipt_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Print receipt",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/receipts/{{receipt_uuid}}/print",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "receipts",
+                                "{{receipt_uuid}}",
+                                "print"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('print_job_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get print job",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/print-jobs/{{print_job_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "print-jobs",
+                                "{{print_job_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Void receipt",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/receipts/{{receipt_uuid}}/void",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "receipts",
+                                "{{receipt_uuid}}",
+                                "void"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Receipt voided from Postman test.\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"

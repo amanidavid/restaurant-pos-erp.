@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\Auth\RegisterTenantController;
 use App\Http\Controllers\Web\Auth\ResetPasswordController;
 use App\Http\Controllers\Web\Auth\TenantRegistrationStatusController;
 use App\Http\Controllers\Web\Auth\VerifyPasswordResetOtpController;
+use App\Http\Controllers\Web\Kitchen\KitchenTicketController;
 use App\Http\Controllers\Web\Foundation\BranchConfigurationController;
 use App\Http\Controllers\Web\Foundation\BranchController;
 use App\Http\Controllers\Web\Foundation\BusinessDateController;
@@ -26,6 +27,9 @@ use App\Http\Controllers\Web\Menu\MenuItemImageController;
 use App\Http\Controllers\Web\Organisation\OrganisationController;
 use App\Http\Controllers\Web\Organisation\StaffProfileController;
 use App\Http\Controllers\Web\Pos\OrderController;
+use App\Http\Controllers\Web\Pos\PaymentController;
+use App\Http\Controllers\Web\Pos\ReceiptController;
+use App\Http\Controllers\Web\Pos\PrintJobController;
 use App\Http\Controllers\Web\Pos\PosReferenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -86,9 +90,25 @@ Route::prefix('web')
                 Route::get('orders/{order}', [OrderController::class, 'show'])->name('pos.orders.show');
                 Route::patch('orders/{order}', [OrderController::class, 'update'])->name('pos.orders.update');
                 Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('pos.orders.items.add');
+                Route::patch('orders/{order}/items/{orderItem}', [OrderController::class, 'updateItem'])->name('pos.orders.items.update');
+                Route::post('orders/{order}/items/{orderItem}/void', [OrderController::class, 'voidItem'])->name('pos.orders.items.void');
+                Route::post('orders/{order}/items/{orderItem}/serve', [OrderController::class, 'serveItem'])->name('pos.orders.items.serve');
+                Route::post('orders/{order}/send-to-kitchen', [OrderController::class, 'sendToKitchen'])->name('pos.orders.send-to-kitchen');
+                Route::get('orders/{order}/payments', [PaymentController::class, 'index'])->name('pos.orders.payments.index');
+                Route::post('orders/{order}/payments', [PaymentController::class, 'store'])->name('pos.orders.payments.store');
+                Route::post('orders/{order}/receipts', [ReceiptController::class, 'store'])->name('pos.orders.receipts.store');
+                Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('pos.receipts.show');
+                Route::post('receipts/{receipt}/void', [ReceiptController::class, 'void'])->name('pos.receipts.void');
+                Route::post('receipts/{receipt}/print', [PrintJobController::class, 'receipt'])->name('pos.receipts.print');
+                Route::get('print-jobs/{printJob}', [PrintJobController::class, 'show'])->name('pos.print-jobs.show');
                 Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('pos.orders.cancel');
                 Route::post('orders/{order}/serve', [OrderController::class, 'serve'])->name('pos.orders.serve');
                 Route::post('orders/{order}/close', [OrderController::class, 'close'])->name('pos.orders.close');
+
+                Route::get('kitchen-tickets', [KitchenTicketController::class, 'index'])->name('kitchen.tickets.index');
+                Route::get('kitchen-tickets/{kitchenTicket}', [KitchenTicketController::class, 'show'])->name('kitchen.tickets.show');
+                Route::post('kitchen-tickets/{kitchenTicket}/items/{kitchenTicketItem}/start', [KitchenTicketController::class, 'start'])->name('kitchen.tickets.items.start');
+                Route::post('kitchen-tickets/{kitchenTicket}/items/{kitchenTicketItem}/ready', [KitchenTicketController::class, 'ready'])->name('kitchen.tickets.items.ready');
 
                 Route::get('company', [CompanyProfileController::class, 'show'])
                     ->name('company.show');

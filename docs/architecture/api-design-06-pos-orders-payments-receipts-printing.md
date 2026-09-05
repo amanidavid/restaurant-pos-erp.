@@ -337,7 +337,7 @@ Order creation should accept arrays because a cashier/waiter normally sends mult
 Example request:
 
 ```http
-POST /api/v1/orders
+POST /api/v1/web/orders
 Authorization: Bearer {token}
 X-Tenant-UUID: {tenant_uuid}
 X-Branch-UUID: {branch_uuid}
@@ -359,7 +359,7 @@ X-Branch-UUID: {branch_uuid}
       "modifiers": [
         {
           "modifier_option_uuid": "uuid",
-          "quantity": "2.0000"
+          "quantity": 2
         }
       ]
     },
@@ -392,16 +392,17 @@ GET /api/v1/dining-tables
 Order APIs:
 
 ```text
-GET    /api/v1/orders
-POST   /api/v1/orders
-GET    /api/v1/orders/{order_uuid}
-PATCH  /api/v1/orders/{order_uuid}
-POST   /api/v1/orders/{order_uuid}/items
-PATCH  /api/v1/orders/{order_uuid}/items/{order_item_uuid}
-POST   /api/v1/orders/{order_uuid}/send-to-kitchen
-POST   /api/v1/orders/{order_uuid}/cancel
-POST   /api/v1/orders/{order_uuid}/serve
-POST   /api/v1/orders/{order_uuid}/close
+GET    /api/v1/web/orders
+POST   /api/v1/web/orders
+GET    /api/v1/web/orders/{order_uuid}
+PATCH  /api/v1/web/orders/{order_uuid}
+POST   /api/v1/web/orders/{order_uuid}/items
+PATCH  /api/v1/web/orders/{order_uuid}/items/{order_item_uuid}
+POST   /api/v1/web/orders/{order_uuid}/items/{order_item_uuid}/void
+POST   /api/v1/web/orders/{order_uuid}/send-to-kitchen
+POST   /api/v1/web/orders/{order_uuid}/cancel
+POST   /api/v1/web/orders/{order_uuid}/serve
+POST   /api/v1/web/orders/{order_uuid}/close
 ```
 
 Payment APIs:
