@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/shift-definitions/{{shift_definition_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "grace_minutes": 20
+    }
+order: 4000

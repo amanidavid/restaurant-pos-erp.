@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/kitchen-tickets?per_page={{per_page}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  per_page: "{{per_page}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data[0]) {
+          pm.environment.set("kitchen_ticket_uuid", json.data[0].uuid);
+          if (json.data[0].items && json.data[0].items[0]) pm.environment.set("kitchen_ticket_item_uuid", json.data[0].items[0].uuid);
+      }
+    language: text/javascript
+order: 1000

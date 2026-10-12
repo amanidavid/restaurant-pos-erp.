@@ -4,4 +4,4 @@ method: POST
 headers:
   Accept: application/json
   X-Tenant-UUID: "{{tenant_uuid}}"
-order: 17000
+order: 18000

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Menu;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\Menu\StoreModifierGroupRequest;
+use App\Http\Requests\Web\Menu\ListBranchMenuItemsRequest;
 use App\Http\Requests\Web\Menu\SyncBranchMenuRequest;
 use App\Http\Requests\Web\Menu\SyncMenuItemModifiersRequest;
 use App\Http\Requests\Web\Menu\UpdateBranchMenuAvailabilityRequest;
@@ -87,6 +88,24 @@ class MenuConfigurationController extends Controller
         return ApiResponse::resource(
             BranchMenuItemResource::collection($branchMenuItems),
             ApiMessages::updated('branch menu items')
+        );
+    }
+
+    public function branchMenuItems(ListBranchMenuItemsRequest $request, Branch $branch): JsonResponse
+    {
+        $this->authorize('viewAny', [MenuItem::class, $branch]);
+
+        $filters = $request->validated();
+        $items = $this->service->listBranchMenuItems(
+            $branch,
+            $this->perPage($request),
+            $filters['search'] ?? null,
+            $filters['menu_category_uuid'] ?? null,
+        );
+
+        return ApiResponse::resource(
+            BranchMenuItemResource::collection($items),
+            ApiMessages::listRetrieved('branch menu items')
         );
     }
 

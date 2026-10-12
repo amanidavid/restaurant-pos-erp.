@@ -54,6 +54,11 @@ class Order extends TenantModel
         return $this->belongsTo(Customer::class);
     }
 
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class);
+    }
+
     public function salesChannel(): BelongsTo
     {
         return $this->belongsTo(SalesChannel::class);
@@ -77,6 +82,13 @@ class Order extends TenantModel
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function itemsPreview(): HasMany
+    {
+        return $this->hasMany(OrderItem::class)
+            ->orderBy('id')
+            ->limit(3);
     }
 
     public function statusLogs(): HasMany

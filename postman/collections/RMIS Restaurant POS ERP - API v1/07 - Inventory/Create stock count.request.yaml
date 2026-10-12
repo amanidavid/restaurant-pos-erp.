@@ -28,4 +28,4 @@ scripts:
       const json = pm.response.json();
       if (json.data && json.data.uuid) pm.environment.set('stock_count_uuid', json.data.uuid);
     language: text/javascript
-order: 19000
+order: 20000

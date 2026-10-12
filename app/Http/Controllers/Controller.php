@@ -19,7 +19,7 @@ abstract class Controller
     protected function currentBranch(): Branch
     {
         return Branch::query()
-            ->select(['id', 'uuid', 'company_id', 'name'])
+            ->select(['id', 'uuid', 'company_id', 'name', 'timezone'])
             ->findOrFail($this->currentBranchId());
     }
 

@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/attendance/clock-out/batch"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "tenant_user_uuids": [
+            "{{tenant_user_uuid}}"
+        ]
+    }
+order: 11000

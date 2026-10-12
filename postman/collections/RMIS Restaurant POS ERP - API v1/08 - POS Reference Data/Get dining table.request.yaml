@@ -1,0 +1,8 @@
+$kind: http-request
+description: "Required permission: dining_tables.view. Returns the table and its dining area."
+url: "{{base_url}}/api/v1/web/dining-tables/{{dining_table_uuid}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+order: 13000

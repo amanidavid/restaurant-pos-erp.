@@ -49,6 +49,24 @@ class MenuItemController extends Controller
         );
     }
 
+    public function show(MenuItem $menuItem): JsonResponse
+    {
+        $this->authorize('view', [$menuItem, $this->currentBranch()]);
+
+        $menuItem->load([
+            'menuCategory:id,uuid,name',
+            'taxCode:id,uuid,name',
+            'modifierGroups.modifierGroup.options.taxCode',
+            'branchMenuItems.branch:id,uuid,name',
+            'branchMenuItems.kitchenSection:id,uuid,name',
+        ]);
+
+        return ApiResponse::resource(
+            new MenuItemResource($menuItem),
+            ApiMessages::detailsRetrieved('menu item')
+        );
+    }
+
     public function update(UpdateMenuItemRequest $request, MenuItem $menuItem): JsonResponse
     {
         $this->authorize('update', [$menuItem, $this->currentBranch()]);

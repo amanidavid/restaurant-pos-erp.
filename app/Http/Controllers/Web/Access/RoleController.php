@@ -8,6 +8,7 @@ use App\Http\Requests\Web\Access\SyncRolePermissionsRequest;
 use App\Http\Requests\Web\Access\UpdateRoleRequest;
 use App\Http\Resources\Web\Access\RoleResource;
 use App\Http\Resources\Web\Access\PermissionResource;
+use App\Models\Tenant\Branch;
 use App\Models\Tenant\Permission;
 use App\Models\Tenant\Role;
 use App\Services\Tenant\Access\RoleAccessService;

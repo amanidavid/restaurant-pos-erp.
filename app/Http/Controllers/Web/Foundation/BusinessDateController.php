@@ -13,6 +13,7 @@ use App\Support\ApiMessages;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class BusinessDateController extends Controller
 {
@@ -45,7 +46,18 @@ class BusinessDateController extends Controller
         $this->authorize('closeBusinessDate', $branch);
         $user = $request->user('tenant_api');
 
-        $businessDay = $this->businessDateService->close($branch, $businessDay, $user->tenantUser()->firstOrFail(), $request->validated());
+        try {
+            $businessDay = $this->businessDateService->close($branch, $businessDay, $user->tenantUser()->firstOrFail(), $request->validated());
+        } catch (ValidationException $exception) {
+            $errors = $exception->errors();
+
+            return ApiResponse::error(
+                message: implode(' ', $errors['business_day'] ?? ['This business day cannot be closed yet.']),
+                errors: $errors,
+                status: 422,
+                code: 'BUSINESS_DAY_CLOSE_BLOCKED',
+            );
+        }
 
         return ApiResponse::resource(new BusinessDateResource($businessDay), 'Business day closed successfully.');
     }

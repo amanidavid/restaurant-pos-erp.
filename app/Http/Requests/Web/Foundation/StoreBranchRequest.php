@@ -3,12 +3,14 @@
 namespace App\Http\Requests\Web\Foundation;
 
 use App\Http\Requests\Concerns\HasApiValidationMessages;
+use App\Http\Requests\Web\Foundation\Concerns\NormalizesBusinessDayTimes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
 class StoreBranchRequest extends FormRequest
 {
     use HasApiValidationMessages;
+    use NormalizesBusinessDayTimes;
 
     public function authorize(): bool
     {
@@ -41,10 +43,15 @@ class StoreBranchRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $configuration = $this->input('configuration');
+
         $this->merge([
             'name' => $this->filled('name') ? Str::title(Str::lower(trim((string) $this->input('name')))) : $this->input('name'),
             'email' => $this->filled('email') ? Str::lower(trim((string) $this->input('email'))) : null,
             'phone' => $this->filled('phone') ? preg_replace('/\s+/', '', (string) $this->input('phone')) : null,
+            'configuration' => is_array($configuration)
+                ? $this->normalizeBusinessDayTimes($configuration)
+                : $configuration,
         ]);
     }
 }

@@ -21,6 +21,13 @@ class WarehousePolicy
         return $this->access->canManage($user, 'inventory.adjust', $branch);
     }
 
+    public function view(User $user, Warehouse $warehouse): bool
+    {
+        $warehouse->loadMissing('branch:id,uuid,name');
+
+        return $this->access->canManage($user, 'inventory.view', $warehouse->branch);
+    }
+
     public function update(User $user, Warehouse $warehouse): bool
     {
         $warehouse->loadMissing('branch:id,uuid,name');

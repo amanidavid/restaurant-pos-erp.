@@ -3,6 +3,7 @@
 use App\Exceptions\Tenant\Auth\DeviceConflictException;
 use App\Http\Middleware\Tenant\AuthenticateTenantRequest;
 use App\Http\Middleware\Tenant\EnsureTenantSessionIsActive;
+use App\Http\Middleware\Tenant\ResolveBranchContext;
 use App\Http\Middleware\Tenant\ResolveTenantContext;
 use App\Support\ApiMessages;
 use App\Support\ApiResponse;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.auth' => AuthenticateTenantRequest::class,
             'tenant.context' => ResolveTenantContext::class,
             'tenant.session' => EnsureTenantSessionIsActive::class,
+            'tenant.branch' => ResolveBranchContext::class,
         ]);
 
         // Tenant resolution must configure the tenant connection before Laravel resolves
@@ -46,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(SubstituteBindings::class, ResolveTenantContext::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, AuthenticateTenantRequest::class);
         $middleware->appendToPriorityList(AuthenticateTenantRequest::class, EnsureTenantSessionIsActive::class);
+        $middleware->appendToPriorityList(EnsureTenantSessionIsActive::class, ResolveBranchContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

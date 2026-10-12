@@ -24,6 +24,11 @@ class CashMovement extends TenantModel
         return $this->belongsTo(Branch::class);
     }
 
+    public function businessDate(): BelongsTo
+    {
+        return $this->belongsTo(BusinessDate::class);
+    }
+
     public function shiftSession(): BelongsTo
     {
         return $this->belongsTo(ShiftSession::class);

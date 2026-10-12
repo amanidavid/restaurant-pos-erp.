@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Arr;
 
 class ApiResponse
 {
@@ -14,11 +15,11 @@ class ApiResponse
         int $status = 200
     ): JsonResponse {
         return $resource
-            ->additional([
+            ->additional(array_merge($resource->additional, [
                 'success' => true,
                 'message' => $message,
                 'errors' => null,
-            ])
+            ]))
             ->response()
             ->setStatusCode($status);
     }
@@ -50,7 +51,7 @@ class ApiResponse
 
     public static function validation(array $errors, ?string $message = null): JsonResponse
     {
-        return self::error($message ?? ApiMessages::VALIDATION_FAILED, $errors, 422);
+        return self::error($message ?? self::validationMessage($errors), $errors, 422);
     }
 
     public static function unauthorized(?array $errors = null, ?string $message = null): JsonResponse
@@ -65,7 +66,18 @@ class ApiResponse
 
     public static function badRequest(?array $errors = null, ?string $message = null): JsonResponse
     {
-        return self::error($message ?? ApiMessages::VALIDATION_FAILED, $errors, 400);
+        return self::error($message ?? self::validationMessage($errors ?? []), $errors, 400);
+    }
+
+    private static function validationMessage(array $errors): string
+    {
+        foreach (Arr::flatten($errors) as $error) {
+            if (is_string($error) && trim($error) !== '') {
+                return trim($error);
+            }
+        }
+
+        return ApiMessages::VALIDATION_FAILED;
     }
 
     public static function notFound(?array $errors = null, ?string $message = null): JsonResponse

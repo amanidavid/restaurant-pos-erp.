@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Requests\Web\Reservations;
+use Illuminate\Foundation\Http\FormRequest;
+class StoreReservationRequest extends FormRequest { public function authorize(): bool{return true;} public function rules(): array{return ['customer_uuid'=>['nullable','uuid'],'customer_name'=>['required_without:customer_uuid','nullable','string','max:180'],'customer_phone'=>['nullable','string','max:20'],'guest_count'=>['required','integer','min:1','max:1000'],'reserved_from'=>['required','date'],'reserved_to'=>['nullable','date','after:reserved_from'],'dining_table_uuids'=>['required','array','min:1','max:20'],'dining_table_uuids.*'=>['required','uuid','distinct'],'payment_method_uuid'=>['required','uuid'],'received_amount'=>['required','decimal:0,2','gt:0'],'notes'=>['nullable','string','max:2000']];}}

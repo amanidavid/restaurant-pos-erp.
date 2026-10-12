@@ -5,39 +5,85 @@ namespace App\Http\Controllers\Web\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\Pos\AddOrderItemsRequest;
 use App\Http\Requests\Web\Pos\ChangeOrderStatusRequest;
+use App\Http\Requests\Web\Pos\IndexOrdersRequest;
 use App\Http\Requests\Web\Pos\StoreOrderRequest;
 use App\Http\Requests\Web\Pos\SendOrderToKitchenRequest;
 use App\Http\Requests\Web\Pos\ServeOrderItemRequest;
 use App\Http\Requests\Web\Pos\UpdateOrderItemRequest;
 use App\Http\Requests\Web\Pos\UpdateOrderRequest;
 use App\Http\Requests\Web\Pos\VoidOrderItemRequest;
+use App\Http\Resources\Web\Pos\OrderCollection;
 use App\Http\Resources\Web\Pos\OrderResource;
+use App\Models\Tenant\Branch;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\OrderItem;
 use App\Services\Tenant\Pos\OrderService;
 use App\Services\Tenant\Pos\KitchenDispatchService;
 use App\Support\ApiMessages;
 use App\Support\ApiResponse;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    private const ORDER_STATUSES = ['draft', 'open', 'sent_to_kitchen', 'partially_ready', 'ready', 'served', 'closed', 'cancelled'];
+
     public function __construct(
         private readonly OrderService $orders,
         private readonly KitchenDispatchService $kitchenDispatch,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(IndexOrdersRequest $request): JsonResponse
     {
         $branch = $this->currentBranch();
         $this->authorize('viewAny', [Order::class, $branch]);
-        $orders = Order::query()->where('branch_id', $branch->id)->with(['salesChannel:id,uuid,name', 'serviceType:id,uuid,name', 'counter:id,uuid,name', 'diningTable:id,uuid,name'])
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
-            ->when($request->filled('search'), fn ($q) => $q->where('order_number', 'like', trim($request->string('search')->toString()).'%'))
-            ->orderByDesc('opened_at')->simplePaginate($this->perPage($request));
+        $orders = $this->ordersQuery($branch, $request)
+            ->withCount('items')
+            ->with([
+                'salesChannel:id,uuid,name', 'serviceType:id,uuid,name', 'counter:id,uuid,name',
+                'diningTable:id,uuid,name', 'customer:id,uuid,name',
+                'itemsPreview:id,uuid,order_id,item_name_snapshot,quantity,notes,status',
+            ])
+            ->orderByDesc('opened_at')
+            ->paginate($this->perPage($request));
 
-        return ApiResponse::resource(OrderResource::collection($orders), ApiMessages::listRetrieved('orders'));
+        return ApiResponse::resource(
+            new OrderCollection($orders, $this->statusCounts($branch, $request)),
+            ApiMessages::listRetrieved('orders'),
+        );
+    }
+
+    private function ordersQuery(Branch $branch, Request $request, bool $includeStatusFilter = true): Builder
+    {
+        return Order::query()
+            ->where('branch_id', $branch->id)
+            ->when($includeStatusFilter && $request->filled('status'), fn (Builder $query) => $query->where('status', $request->string('status')->toString()))
+            ->when($request->filled('search'), fn (Builder $query) => $query->where('order_number', 'like', trim($request->string('search')->toString()).'%'))
+            ->when($request->filled('month_from'), fn (Builder $query) => $query->where('opened_at', '>=', $this->monthStart($request->string('month_from')->toString())))
+            ->when($request->filled('month_to'), fn (Builder $query) => $query->where('opened_at', '<', $this->monthStart($request->string('month_to')->toString())->addMonth()));
+    }
+
+    private function monthStart(string $month): Carbon
+    {
+        return Carbon::createFromFormat('!Y-m', $month)->startOfMonth();
+    }
+
+    /** @return array<string, int> */
+    private function statusCounts(Branch $branch, Request $request): array
+    {
+        $counts = array_fill_keys(self::ORDER_STATUSES, 0);
+        $rows = $this->ordersQuery($branch, $request, false)
+            ->selectRaw('status, COUNT(*) AS aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        foreach ($rows as $status => $count) {
+            $counts[$status] = (int) $count;
+        }
+
+        return ['all' => array_sum($counts)] + $counts;
     }
 
     public function store(StoreOrderRequest $request): JsonResponse

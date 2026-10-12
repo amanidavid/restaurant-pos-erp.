@@ -4,6 +4,8 @@ values:
     value: 'http://localhost:8000'
   - key: tenant_uuid
     value: ''
+  - key: access_token
+    value: ''
   - key: login
     value: owner@example.test
   - key: password
@@ -66,9 +68,47 @@ values:
     value: ''
   - key: stock_count_uuid
     value: ''
+  - key: dining_area_uuid
+    value: ''
+  - key: dining_table_uuid
+    value: ''
+  - key: customer_uuid
+    value: ''
+  - key: customer_search
+    value: ''
+  - key: sales_channel_uuid
+    value: ''
+  - key: service_type_uuid
+    value: ''
+  - key: counter_uuid
+    value: ''
+  - key: branch_menu_item_uuid
+    value: ''
+  - key: order_uuid
+    value: ''
+  - key: order_item_uuid
+    value: ''
+  - key: kitchen_ticket_uuid
+    value: ''
+  - key: kitchen_ticket_item_uuid
+    value: ''
+  - key: payment_method_uuid
+    value: ''
+  - key: reservation_uuid
+    value: ''
+  - key: shift_definition_uuid
+    value: ''
+  - key: shift_assignment_uuid
+    value: ''
+  - key: attendance_uuid
+    value: ''
+  - key: payment_uuid
+    value: ''
+  - key: receipt_uuid
+    value: ''
+  - key: print_job_uuid
+    value: ''
   - key: menu_image_path
     value: ''
   - key: menu_csv_path
-    value: ''
-  - key: access_token
     value: ''

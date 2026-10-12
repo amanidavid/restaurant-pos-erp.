@@ -1,0 +1,23 @@
+$kind: http-request
+description: Creates exactly one linked POS order. The reservation deposit is applied as items are added.
+url: "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}/seat"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "service_type_uuid": "{{service_type_uuid}}",
+        "sales_channel_uuid": "{{sales_channel_uuid}}",
+        "counter_uuid": "{{counter_uuid}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.order) pm.environment.set('order_uuid', json.data.order.uuid);
+    language: text/javascript
+order: 4000

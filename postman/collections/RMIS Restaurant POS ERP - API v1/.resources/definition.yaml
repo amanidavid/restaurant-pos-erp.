@@ -1,11 +1,14 @@
 $kind: collection
-description: Version-controlled Postman collection generated from the implemented Laravel API. Import RMIS-local.postman_environment.json, select it, register or configure a tenant UUID, then run Login. All protected requests send X-Tenant-UUID and Bearer access_token.
+description: Version-controlled Postman collection generated from the implemented Laravel API. Import RMIS-local.postman_environment.json, select it, then run Login with email/phone and password. Login resolves a single active tenant automatically. All protected requests send the returned X-Tenant-UUID and Bearer access_token.
 scripts:
   - type: http:beforeRequest
-    code: if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }
+    code: |-
+      if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }
+      const tenantHeader = pm.request.headers.get('X-Tenant-UUID');
+      if (tenantHeader && !pm.variables.replaceIn(tenantHeader).trim()) { throw new Error('Run Login successfully, or set tenant_uuid to a restaurant workspace UUID, before sending this request.'); }
     language: text/javascript
 auth:
-  - id: ab363c0e-4bd1-44c3-b157-497af95535f1
+  - id: fa2a81e2-711f-470a-8309-c83dc9e48d7f
     type: bearer
     name: bearer auth
     credentials:

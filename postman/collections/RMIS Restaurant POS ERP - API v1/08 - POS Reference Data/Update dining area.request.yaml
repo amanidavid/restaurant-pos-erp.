@@ -1,0 +1,17 @@
+$kind: http-request
+description: "Required permission: dining_areas.update."
+url: "{{base_url}}/api/v1/web/dining-areas/{{dining_area_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Indoor Hall",
+        "description": "Updated dining area description.",
+        "status": "active"
+    }
+order: 10000

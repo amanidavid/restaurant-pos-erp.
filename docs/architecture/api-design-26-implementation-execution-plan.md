@@ -182,7 +182,7 @@ Validation error example:
 ```json
 {
   "success": false,
-  "message": "Please check the highlighted details and try again.",
+  "message": "Menu item could not be found.",
   "data": null,
   "errors": {
     "items.0.menu_item_uuid": [

@@ -4,10 +4,8 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserDepartmentAccess extends TenantModel
+class UserDepartmentAccess extends TenantInternalModel
 {
-    public $usesUniqueIds = false;
-
     protected $table = 'user_department_access';
 
     protected function casts(): array

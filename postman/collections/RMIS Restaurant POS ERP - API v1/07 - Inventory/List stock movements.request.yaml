@@ -8,4 +8,4 @@ queryParams:
   branch_uuid: "{{branch_uuid}}"
   warehouse_uuid: "{{warehouse_uuid}}"
   per_page: "{{per_page}}"
-order: 6000
+order: 7000

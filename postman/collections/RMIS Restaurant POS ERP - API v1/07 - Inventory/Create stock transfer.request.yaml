@@ -29,4 +29,4 @@ scripts:
       const json = pm.response.json();
       if (json.data && json.data.uuid) pm.environment.set('stock_transfer_uuid', json.data.uuid);
     language: text/javascript
-order: 13000
+order: 14000

@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/attendance/me"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+order: 12000

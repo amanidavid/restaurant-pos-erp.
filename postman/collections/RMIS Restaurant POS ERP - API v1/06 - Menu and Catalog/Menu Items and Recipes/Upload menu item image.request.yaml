@@ -11,4 +11,4 @@ body:
       key: image
       src:
         - "{{menu_image_path}}"
-order: 4000
+order: 6000

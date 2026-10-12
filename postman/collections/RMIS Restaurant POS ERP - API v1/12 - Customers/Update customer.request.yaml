@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/customers/{{customer_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "phone": "+255700000001",
+        "status": "active"
+    }
+order: 4000

@@ -1,0 +1,25 @@
+$kind: http-request
+description: Replaces all denomination lines and moves the drawer to closing, preventing further cash movements.
+url: "{{base_url}}/api/v1/web/cash-reconciliations/{{cash_reconciliation_uuid}}/count"
+method: PUT
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "lines": [
+            {
+                "denomination_value": "50000.00",
+                "quantity": 2
+            },
+            {
+                "denomination_value": "10000.00",
+                "quantity": 1
+            }
+        ],
+        "notes": "Counted at business-day close."
+    }
+order: 5000

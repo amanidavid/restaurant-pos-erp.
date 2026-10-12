@@ -26,7 +26,7 @@ class PosReferenceController extends Controller
     public function salesChannels(IndexPosReferenceRequest $request): JsonResponse
     {
         $branch = $this->currentBranch();
-        $this->authorize('viewAny', [SalesChannel::class, $branch]);
+        $this->authorize('viewSalesChannels', [SalesChannel::class, $branch]);
 
         $rows = $this->companyQuery(SalesChannel::query(), $request, $branch->company_id)
             ->select(['id', 'uuid', 'company_id', 'name', 'type', 'status'])
@@ -38,7 +38,7 @@ class PosReferenceController extends Controller
     public function serviceTypes(IndexPosReferenceRequest $request): JsonResponse
     {
         $branch = $this->currentBranch();
-        $this->authorize('viewAny', [ServiceType::class, $branch]);
+        $this->authorize('viewServiceTypes', [ServiceType::class, $branch]);
 
         $rows = $this->companyQuery(ServiceType::query(), $request, $branch->company_id)
             ->select(['id', 'uuid', 'company_id', 'name', 'type', 'status'])
@@ -50,10 +50,11 @@ class PosReferenceController extends Controller
     public function paymentMethods(IndexPosReferenceRequest $request): JsonResponse
     {
         $branch = $this->currentBranch();
-        $this->authorize('viewAny', [PaymentMethod::class, $branch]);
+        $this->authorize('viewPaymentMethods', [PaymentMethod::class, $branch]);
 
         $rows = $this->companyQuery(PaymentMethod::query(), $request, $branch->company_id)
             ->select(['id', 'uuid', 'company_id', 'name', 'method_type', 'requires_provider', 'allows_change', 'status'])
+            ->when(! $request->filled('status'), fn (Builder $query) => $query->where('status', 'active'))
             ->simplePaginate($this->perPage($request));
 
         return ApiResponse::resource(PaymentMethodResource::collection($rows), ApiMessages::listRetrieved('payment methods'));
@@ -61,7 +62,7 @@ class PosReferenceController extends Controller
 
     public function counters(IndexPosReferenceRequest $request): JsonResponse
     {
-        $this->authorize('viewAny', [Counter::class, $this->currentBranch()]);
+        $this->authorize('viewCounters', [Counter::class, $this->currentBranch()]);
 
         $rows = $this->branchQuery(Counter::query(), $request)
             ->select(['id', 'uuid', 'branch_id', 'name', 'type', 'status'])
@@ -72,10 +73,11 @@ class PosReferenceController extends Controller
 
     public function diningAreas(IndexPosReferenceRequest $request): JsonResponse
     {
-        $this->authorize('viewAny', [DiningArea::class, $this->currentBranch()]);
+        $this->authorize('viewDiningAreas', [DiningArea::class, $this->currentBranch()]);
 
         $rows = $this->branchQuery(DiningArea::query(), $request)
             ->select(['id', 'uuid', 'branch_id', 'name', 'description', 'status'])
+            ->withCount('diningTables')
             ->simplePaginate($this->perPage($request));
 
         return ApiResponse::resource(DiningAreaResource::collection($rows), ApiMessages::listRetrieved('dining areas'));
@@ -83,7 +85,7 @@ class PosReferenceController extends Controller
 
     public function diningTables(IndexPosReferenceRequest $request): JsonResponse
     {
-        $this->authorize('viewAny', [DiningTable::class, $this->currentBranch()]);
+        $this->authorize('viewDiningTables', [DiningTable::class, $this->currentBranch()]);
 
         $rows = $this->branchQuery(DiningTable::query(), $request)
             ->select(['id', 'uuid', 'branch_id', 'dining_area_id', 'name', 'capacity', 'shape', 'status'])

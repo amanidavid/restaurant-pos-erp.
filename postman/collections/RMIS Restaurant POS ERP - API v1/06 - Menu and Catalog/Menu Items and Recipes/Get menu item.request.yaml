@@ -1,0 +1,8 @@
+$kind: http-request
+description: Returns menu item details, branch assignments, and configured modifier groups/options.
+url: "{{base_url}}/api/v1/web/menu-items/{{menu_item_uuid}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+order: 4000

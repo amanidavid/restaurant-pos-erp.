@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/orders/{{order_uuid}}/send-to-kitchen"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: "[]"
+order: 8000

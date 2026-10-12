@@ -31,4 +31,4 @@ scripts:
       const json = pm.response.json();
       if (json.data && json.data.uuid) pm.environment.set('stock_adjustment_uuid', json.data.uuid);
     language: text/javascript
-order: 8000
+order: 9000

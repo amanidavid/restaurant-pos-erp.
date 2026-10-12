@@ -9,6 +9,7 @@ use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\TenantUserBranch;
 use App\Models\Tenant\User;
 use App\Models\Landlord\User as LandlordUser;
+use App\Services\Tenant\Organisation\StaffProfileService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class TenantUserAccessService
 {
     public function __construct(
         private readonly AccessAuthorizationService $authorizationService,
+        private readonly StaffProfileService $staffProfileService,
     ) {}
 
     /**
@@ -85,6 +87,26 @@ class TenantUserAccessService
                 ]);
 
                 $this->replaceBranchAccess($tenantUser, $data['branches'], $actor->tenantUser()->firstOrFail());
+
+                if (isset($data['staff_profile'])) {
+                    $this->staffProfileService->update($tenantUser, $data['staff_profile']);
+
+                    $this->staffProfileService->addJobHistory($tenantUser, array_merge(
+                        $data['staff_profile'],
+                        [
+                            'effective_from' => $data['staff_profile']['hired_on'],
+                            'reason' => 'Initial employment',
+                        ],
+                    ));
+                }
+
+                if (isset($data['role_uuids'], $data['initial_role_branch_uuid'])) {
+                    $branch = Branch::query()
+                        ->where('uuid', $data['initial_role_branch_uuid'])
+                        ->firstOrFail(['id', 'uuid']);
+
+                    $this->syncRoles($tenantUser, $branch, $data['role_uuids']);
+                }
 
                 return $tenantUser;
             });

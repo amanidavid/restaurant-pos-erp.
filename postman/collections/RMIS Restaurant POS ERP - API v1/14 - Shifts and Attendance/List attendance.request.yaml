@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/attendance-records?date_from=2026-10-01&date_to=2026-10-31&per_page={{per_page}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  date_from: 2026-10-01
+  date_to: 2026-10-31
+  per_page: "{{per_page}}"
+order: 13000

@@ -56,6 +56,8 @@ foreach (json_decode(implode(PHP_EOL, $output), true, 512, JSON_THROW_ON_ERROR) 
         '{tenant_uuid}' => '{tenant_uuid}',
         '{branch_uuid}' => '{branch_uuid}',
         '{businessDay_uuid}' => '{business_day_uuid}',
+        '{cashAccount_uuid}' => '{cash_account_uuid}',
+        '{reconciliation_uuid}' => '{cash_reconciliation_uuid}',
         '{role_uuid}' => '{role_uuid}',
         '{tenantUser_uuid}' => '{tenant_user_uuid}',
         '{department_uuid}' => '{department_uuid}',
@@ -74,10 +76,15 @@ foreach (json_decode(implode(PHP_EOL, $output), true, 512, JSON_THROW_ON_ERROR) 
         '{stockCount_uuid}' => '{stock_count_uuid}',
         '{order_uuid}' => '{order_uuid}',
         '{orderItem_uuid}' => '{order_item_uuid}',
+        '{diningArea_uuid}' => '{dining_area_uuid}',
+        '{diningTable_uuid}' => '{dining_table_uuid}',
+        '{counter_uuid}' => '{counter_uuid}',
         '{kitchenTicket_uuid}' => '{kitchen_ticket_uuid}',
         '{kitchenTicketItem_uuid}' => '{kitchen_ticket_item_uuid}',
         '{receipt_uuid}' => '{receipt_uuid}',
         '{printJob_uuid}' => '{print_job_uuid}',
+        '{reservation_uuid}' => '{reservation_uuid}',
+        '{customer_uuid}' => '{customer_uuid}',
     ];
 
     $laravelRoutes[] = $method.' '.strtr($uri, $replacements);

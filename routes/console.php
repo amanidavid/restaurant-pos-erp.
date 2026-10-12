@@ -3,15 +3,21 @@
 use App\Models\Landlord\Tenant;
 use App\Services\Landlord\Tenancy\TenantConnectionManager;
 use Database\Seeders\Tenant\TenantAccessSeeder;
+use Database\Seeders\Tenant\TenantCatalogPaymentInventorySeeder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Console\Command\Command;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::command('realtime:publish-outbox --all --limit=200')
+    ->everySecond()
+    ->withoutOverlapping();
 
 Artisan::command('tenants:seed-access
     {--tenant= : Seed one tenant by its public UUID}
@@ -75,3 +81,65 @@ Artisan::command('tenants:seed-access
         return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
     }
 )->purpose('Seed tenant roles and permissions using tenant databases registered in the landlord database');
+
+Artisan::command('tenants:seed-catalog
+    {--tenant= : Seed one tenant by its public UUID}
+    {--all : Seed every trial or active tenant registered by the landlord}',
+    function (TenantConnectionManager $tenantConnectionManager): int {
+        $tenantUuid = $this->option('tenant');
+        $seedAll = (bool) $this->option('all');
+
+        if (! $seedAll && (! is_string($tenantUuid) || trim($tenantUuid) === '')) {
+            $this->error('Choose --all to seed every available tenant, or provide --tenant=<tenant-uuid>.');
+
+            return Command::INVALID;
+        }
+
+        $query = Tenant::query()
+            ->select(['id', 'uuid'])
+            ->whereIn('status', ['trial', 'active'])
+            ->orderBy('id');
+
+        if (is_string($tenantUuid) && trim($tenantUuid) !== '') {
+            $query->where('uuid', trim($tenantUuid));
+        }
+
+        $seeded = 0;
+        $failed = 0;
+
+        foreach ($query->cursor() as $tenant) {
+            try {
+                $connectedTenant = $tenantConnectionManager->connectByUuid($tenant->uuid);
+
+                app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+                Artisan::call('db:seed', [
+                    '--database' => 'tenant',
+                    '--class' => TenantCatalogPaymentInventorySeeder::class,
+                    '--force' => true,
+                ]);
+
+                $this->line(Artisan::output());
+                DB::disconnect('tenant');
+                $seeded++;
+
+                $this->info("Catalog seeded: {$tenant->uuid} ({$connectedTenant->getDatabaseName()}).");
+            } catch (\Throwable $exception) {
+                DB::disconnect('tenant');
+                $failed++;
+                $this->error("Catalog seed failed for {$tenant->uuid}: {$exception->getMessage()}");
+            }
+        }
+
+        if ($seeded === 0 && $failed === 0) {
+            $this->warn('No eligible tenant was found in the landlord registry.');
+
+            return Command::FAILURE;
+        }
+
+        $this->newLine();
+        $this->line("Completed. Seeded: {$seeded}; failed: {$failed}.");
+
+        return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
+    }
+)->purpose('Seed tenant catalog, service types, payment methods, and inventory references');

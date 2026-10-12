@@ -1,0 +1,15 @@
+$kind: http-request
+description: Server calculates expected cash, counted cash, and variance, then closes the drawer.
+url: "{{base_url}}/api/v1/web/cash-reconciliations/{{cash_reconciliation_uuid}}/close"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "notes": "Cash drawer closed from Postman."
+    }
+order: 6000

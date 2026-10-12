@@ -16,6 +16,9 @@ class DepartmentResource extends JsonResource
             'status' => $this->status,
             'branch_uuid' => $this->branch?->uuid,
             'parent_uuid' => $this->parent?->uuid,
+            'parent' => $this->whenLoaded('parent', fn (): ?array => $this->parent
+                ? ['uuid' => $this->parent->uuid, 'name' => $this->parent->name]
+                : null),
         ];
     }
 }

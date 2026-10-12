@@ -12,6 +12,7 @@ use App\Models\Tenant\ModifierGroup;
 use App\Models\Tenant\RealtimeEventOutbox;
 use App\Models\Tenant\TaxCode;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -107,6 +108,39 @@ class MenuConfigurationService
 
             return $this->branchMenuItems($branch, collect($items)->pluck('menu_item_uuid'));
         });
+    }
+
+    public function listBranchMenuItems(
+        Branch $branch,
+        int $perPage = 15,
+        ?string $search = null,
+        ?string $menuCategoryUuid = null,
+    ): Paginator
+    {
+        return BranchMenuItem::query()
+            ->with([
+                'branch:id,uuid,name',
+                'menuItem:id,uuid,name,sku,is_combo,is_active,image_url,menu_category_id',
+                'menuItem.menuCategory:id,uuid,name',
+                'menuItem.taxCode:id,uuid,name,rate_percentage,is_inclusive',
+                'menuItem.modifierGroups.modifierGroup.options.taxCode',
+                'menuItem.comboProduct.items.componentMenuItem:id,uuid,name,is_combo',
+                'kitchenSection:id,uuid,name',
+            ])
+            ->where('branch_id', $branch->id)
+            ->when($search !== null && $search !== '', function ($query) use ($search): void {
+                $query->whereHas('menuItem', function ($menuItemQuery) use ($search): void {
+                    $menuItemQuery->where('name', 'like', $search.'%');
+                });
+            })
+            ->when($menuCategoryUuid !== null, function ($query) use ($menuCategoryUuid): void {
+                $query->whereHas('menuItem.menuCategory', function ($categoryQuery) use ($menuCategoryUuid): void {
+                    $categoryQuery->where('uuid', $menuCategoryUuid);
+                });
+            })
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->simplePaginate(min(max($perPage, 1), 100));
     }
 
     public function updateAvailability(Branch $branch, array $items, ?string $reason = null): EloquentCollection
@@ -225,7 +259,10 @@ class MenuConfigurationService
     {
         return BranchMenuItem::query()
             ->with([
-                'menuItem:id,uuid,name,is_combo',
+                'menuItem:id,uuid,name,is_combo,image_url',
+                'menuItem.taxCode:id,uuid,name,rate_percentage,is_inclusive',
+                'menuItem.modifierGroups.modifierGroup.options.taxCode',
+                'menuItem.comboProduct.items.componentMenuItem:id,uuid,name,is_combo',
                 'kitchenSection:id,uuid,name',
             ])
             ->where('branch_id', $branch->id)

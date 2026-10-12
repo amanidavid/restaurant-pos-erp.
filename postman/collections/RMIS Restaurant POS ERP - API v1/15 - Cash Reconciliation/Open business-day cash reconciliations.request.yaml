@@ -1,0 +1,18 @@
+$kind: http-request
+description: Opens one reconciliation for each active branch cash account that requires reconciliation.
+url: "{{base_url}}/api/v1/web/business-days/{{business_day_uuid}}/cash-reconciliations"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: "[]"
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data[0] && json.data[0].uuid) pm.environment.set('cash_reconciliation_uuid', json.data[0].uuid);
+    language: text/javascript
+order: 1000

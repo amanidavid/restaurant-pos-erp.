@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/orders"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "sales_channel_uuid": "{{sales_channel_uuid}}",
+        "service_type_uuid": "{{service_type_uuid}}",
+        "items": [
+            {
+                "branch_menu_item_uuid": "{{branch_menu_item_uuid}}",
+                "quantity": "1.0000",
+                "modifiers": []
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('order_uuid', json.data.uuid);
+      if (json.data && json.data.items && json.data.items[0]) pm.environment.set("order_item_uuid", json.data.items[0].uuid);
+    language: text/javascript
+order: 2000

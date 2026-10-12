@@ -144,6 +144,10 @@ $auth = folder('01 - Authentication', [
         'body' => jsonBody([
             'login' => '{{login}}',
             'password' => '{{password}}',
+            // Empty environment variables are converted to null by Laravel, so
+            // this works for single-workspace logins and lets a user choose a
+            // workspace after a tenant-selection response.
+            'tenant_uuid' => '{{tenant_uuid}}',
             'device_name' => 'Postman Desktop',
             'device_type' => 'desktop',
             'branch_uuid' => '{{branch_uuid}}',
@@ -152,10 +156,11 @@ $auth = folder('01 - Authentication', [
             'const json = pm.response.json();',
             "if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);",
             "if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);",
+            "if (json.data && json.data.requires_tenant_selection) pm.environment.unset('access_token');",
             "if (json.data && json.data.tenant_user && json.data.tenant_user.uuid) pm.environment.set('tenant_user_uuid', json.data.tenant_user.uuid);",
             "if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);",
         ],
-        'description' => 'Authenticates centrally and automatically resolves a single active restaurant workspace. A successful response stores the tenant UUID, access token, and active branch UUID. If multiple workspaces are returned, repeat login with the selected tenant_uuid in the JSON body.',
+        'description' => 'Authenticates centrally and automatically resolves a single active restaurant workspace. A successful response stores the tenant UUID, access token, and active branch UUID. If a tenant selection response is returned, copy its selected tenant UUID into the active environment and send Login again; the request includes it automatically.',
     ]),
     requestItem('Replace active device session', 'POST', 'auth/logout-other-device', [
         'protected' => false,
@@ -268,9 +273,9 @@ $foundation = folder('03 - Company and Branches', [
     ]),
     requestItem('Close business day', 'POST', 'branches/{{branch_uuid}}/business-days/{{business_day_uuid}}/close', [
         'body' => jsonBody([
-            'counted_cash_amount' => '100000.00',
             'closing_notes' => 'Closed from Postman.',
         ]),
+        'description' => 'Requires every reconciliation-required drawer to be closed. The server aggregates expected, counted, and variance amounts from those drawer reconciliations.',
     ]),
 ]);
 
@@ -484,6 +489,16 @@ $menuItems = folder('Menu Items and Recipes', [
         ]),
         'tests' => $captureUuid('menu_item_uuid'),
     ]),
+    requestItem('List branch menu items', 'GET', 'branches/{{branch_uuid}}/menu-items', [
+      'query' => [
+         'per_page' => '{{per_page}}',
+         'search' => ['value' => 'Beef', 'disabled' => true],
+         'menu_category_uuid' => ['value' => '{{menu_category_uuid}}', 'disabled' => true],
+      ],
+    ]),
+    requestItem('Get menu item', 'GET', 'menu-items/{{menu_item_uuid}}', [
+        'description' => 'Returns menu item details, branch assignments, and configured modifier groups/options.',
+    ]),
     requestItem('Update menu item', 'PATCH', 'menu-items/{{menu_item_uuid}}', [
         'body' => jsonBody(['name' => 'Beef Pilau', 'description' => 'Beef pilau served with salad.', 'is_active' => true]),
     ]),
@@ -591,6 +606,7 @@ $inventory = folder('07 - Inventory', [
         'body' => jsonBody(['branch_uuid' => '{{branch_uuid}}', 'name' => 'Main Store', 'type' => 'main', 'description' => 'Main branch stock store.', 'status' => 'active']),
         'tests' => $captureUuid('warehouse_uuid'),
     ]),
+    requestItem('Get warehouse', 'GET', 'inventory/warehouses/{{warehouse_uuid}}'),
     requestItem('Update warehouse', 'PATCH', 'inventory/warehouses/{{warehouse_uuid}}', [
         'body' => jsonBody(['name' => 'Main Store', 'type' => 'main', 'status' => 'active']),
     ]),
@@ -668,23 +684,108 @@ $inventory = folder('07 - Inventory', [
 ]);
 
 $pos = folder('08 - POS Reference Data', [
-    requestItem('List sales channels', 'GET', 'sales-channels', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
-    requestItem('List service types', 'GET', 'service-types', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List sales channels', 'GET', 'sales-channels', [
+        'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
+        'description' => 'Required permission: sales_channels.view.',
+    ]),
+    requestItem('List service types', 'GET', 'service-types', [
+        'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
+        'description' => 'Required permission: service_types.view.',
+    ]),
     requestItem('List payment methods', 'GET', 'payment-methods', [
         'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
         'tests' => [
             'const json = pm.response.json();',
             'if (json.data && json.data[0]) pm.environment.set("payment_method_uuid", json.data[0].uuid);',
         ],
+        'description' => 'Required permission: payment_methods.view.',
     ]),
-    requestItem('List counters', 'GET', 'counters', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
-    requestItem('List dining areas', 'GET', 'dining-areas', ['query' => ['status' => 'active', 'per_page' => '{{per_page}}']]),
+    requestItem('List counters', 'GET', 'counters', [
+        'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
+        'description' => 'Required permission: counters.view.',
+    ]),
+    requestItem('Create counters', 'POST', 'counters', [
+        'body' => jsonBody([
+            'counters' => [
+                ['name' => 'Main Cashier', 'type' => 'pos'],
+                ['name' => 'Bar Counter', 'type' => 'bar'],
+                ['name' => 'Takeaway Desk', 'type' => 'takeaway'],
+            ],
+        ]),
+        'tests' => [
+            'const json = pm.response.json();',
+            'if (json.data && json.data[0]) pm.environment.set("counter_uuid", json.data[0].uuid);',
+        ],
+        'description' => 'Required permission: counters.create. Creates all counters in one transaction. The request is rejected as a whole if any counter is invalid or duplicates an existing branch counter.',
+    ]),
+    requestItem('Update counter', 'PATCH', 'counters/{{counter_uuid}}', [
+        'body' => jsonBody(['name' => 'Main Cashier', 'type' => 'pos', 'status' => 'active']),
+        'description' => 'Required permission: counters.update.',
+    ]),
+    requestItem('List dining areas', 'GET', 'dining-areas', [
+        'query' => ['status' => 'active', 'per_page' => '{{per_page}}'],
+        'description' => 'Required permission: dining_areas.view.',
+    ]),
+    requestItem('Create dining floor plan', 'POST', 'dining-areas', [
+        'body' => jsonBody([
+            'areas' => [
+                [
+                    'name' => 'Indoor Hall',
+                    'description' => 'Main air-conditioned dining area.',
+                    'tables' => [
+                        ['name' => 'Table 1', 'capacity' => 4, 'shape' => 'square'],
+                        ['name' => 'Table 2', 'capacity' => 4, 'shape' => 'square'],
+                    ],
+                ],
+                [
+                    'name' => 'Garden',
+                    'description' => 'Outdoor dining area.',
+                    'tables' => [
+                        ['name' => 'Garden 1', 'capacity' => 6, 'shape' => 'round'],
+                    ],
+                ],
+            ],
+        ]),
+        'tests' => [
+            'const json = pm.response.json();',
+            'if (json.data && json.data[0]) {',
+            '    pm.environment.set("dining_area_uuid", json.data[0].uuid);',
+            '    if (json.data[0].tables && json.data[0].tables[0]) pm.environment.set("dining_table_uuid", json.data[0].tables[0].uuid);',
+            '}',
+        ],
+        'description' => 'Required permissions: dining_areas.create and dining_tables.create. Creates all submitted dining areas and nested tables in one transaction. The request is rejected as a whole if any row is invalid or duplicates an existing branch name.',
+    ]),
+    requestItem('Get dining area', 'GET', 'dining-areas/{{dining_area_uuid}}', [
+        'description' => 'Required permission: dining_areas.view. Returns the area, tables_count, and nested tables.',
+    ]),
+    requestItem('Update dining area', 'PATCH', 'dining-areas/{{dining_area_uuid}}', [
+        'body' => jsonBody(['name' => 'Indoor Hall', 'description' => 'Updated dining area description.', 'status' => 'active']),
+        'description' => 'Required permission: dining_areas.update.',
+    ]),
     requestItem('List dining tables', 'GET', 'dining-tables', [
         'query' => [
             'status' => 'active',
             'dining_area_uuid' => ['value' => '{{dining_area_uuid}}', 'disabled' => true],
             'per_page' => '{{per_page}}',
         ],
+        'description' => 'Required permission: dining_tables.view.',
+    ]),
+    requestItem('Create dining table', 'POST', 'dining-tables', [
+        'body' => jsonBody([
+            'dining_area_uuid' => '{{dining_area_uuid}}',
+            'name' => 'Table 3',
+            'capacity' => 4,
+            'shape' => 'square',
+            'status' => 'active',
+        ]),
+        'description' => 'Required permission: dining_tables.create. Creates one table and assigns it to an existing dining area.',
+    ]),
+    requestItem('Get dining table', 'GET', 'dining-tables/{{dining_table_uuid}}', [
+        'description' => 'Required permission: dining_tables.view. Returns the table and its dining area.',
+    ]),
+    requestItem('Update dining table', 'PATCH', 'dining-tables/{{dining_table_uuid}}', [
+        'body' => jsonBody(['name' => 'Table 1', 'capacity' => 4, 'shape' => 'square', 'status' => 'active']),
+        'description' => 'Required permission: dining_tables.update.',
     ]),
 ]);
 
@@ -770,6 +871,149 @@ $paymentsAndReceipts = folder('11 - Payments, Receipts and Printing', [
     ]),
 ]);
 
+$customers = folder('12 - Customers', [
+    requestItem('List customers', 'GET', 'customers', [
+        'query' => ['search' => '{{customer_search}}', 'per_page' => '{{per_page}}'],
+        'tests' => [
+            'const json = pm.response.json();',
+            "if (json.data && json.data[0]) pm.environment.set('customer_uuid', json.data[0].uuid);",
+        ],
+    ]),
+    requestItem('Create customer', 'POST', 'customers', [
+        'body' => jsonBody([
+            'name' => 'Asha Mtega',
+            'email' => 'asha.mtega@example.test',
+            'phone' => '+255700000000',
+            'tax_number' => null,
+            'status' => 'active',
+        ]),
+        'tests' => $captureUuid('customer_uuid'),
+    ]),
+    requestItem('Get customer', 'GET', 'customers/{{customer_uuid}}'),
+    requestItem('Update customer', 'PATCH', 'customers/{{customer_uuid}}', [
+        'body' => jsonBody(['phone' => '+255700000001', 'status' => 'active']),
+    ]),
+]);
+
+$reservations = folder('13 - Reservations', [
+    requestItem('List reservations', 'GET', 'reservations', [
+        'query' => ['period' => 'today', 'per_page' => '{{per_page}}'],
+        'tests' => [
+            'const json = pm.response.json();',
+            "if (json.data && json.data[0]) pm.environment.set('reservation_uuid', json.data[0].uuid);",
+        ],
+    ]),
+    requestItem('Create paid reservation', 'POST', 'reservations', [
+        'body' => jsonBody([
+            'customer_name' => 'Reservation Guest',
+            'customer_phone' => '+255700000000',
+            'guest_count' => 2,
+            'reserved_from' => '2026-10-01T18:00:00+03:00',
+            'reserved_to' => '2026-10-01T20:00:00+03:00',
+            'dining_table_uuids' => ['{{dining_table_uuid}}'],
+            'payment_method_uuid' => '{{payment_method_uuid}}',
+            'received_amount' => '10000.00',
+            'notes' => 'Deposit collected at reservation time.',
+        ]),
+        'tests' => $captureUuid('reservation_uuid'),
+        'description' => 'A completed manual payment is required before a reservation is recorded.',
+    ]),
+    requestItem('Get reservation', 'GET', 'reservations/{{reservation_uuid}}'),
+    requestItem('Seat reservation and open order', 'POST', 'reservations/{{reservation_uuid}}/seat', [
+        'body' => jsonBody([
+            'service_type_uuid' => '{{service_type_uuid}}',
+            'sales_channel_uuid' => '{{sales_channel_uuid}}',
+            'counter_uuid' => '{{counter_uuid}}',
+        ]),
+        'tests' => [
+            'const json = pm.response.json();',
+            "if (json.data && json.data.order) pm.environment.set('order_uuid', json.data.order.uuid);",
+        ],
+        'description' => 'Creates exactly one linked POS order. The reservation deposit is applied as items are added.',
+    ]),
+    requestItem('Complete reservation', 'POST', 'reservations/{{reservation_uuid}}/complete', ['body' => jsonBody([])]),
+    requestItem('Cancel reservation', 'POST', 'reservations/{{reservation_uuid}}/cancel', ['body' => jsonBody(['reason' => 'Guest cancelled before arrival.'])]),
+    requestItem('Mark reservation no-show', 'POST', 'reservations/{{reservation_uuid}}/no-show', ['body' => jsonBody(['reason' => 'Guest did not arrive.'])]),
+]);
+
+$hr = folder('14 - Shifts and Attendance', [
+    requestItem('My shifts', 'GET', 'me/shifts', ['query' => ['from' => '2026-10-01', 'to' => '2026-10-31']]),
+    requestItem('List shifts', 'GET', 'hr/shift-definitions', ['query' => ['per_page' => '{{per_page}}']]),
+    requestItem('Create shift', 'POST', 'hr/shift-definitions', [
+        'body' => jsonBody(['name' => 'Morning Shift', 'starts_at' => '08:00', 'ends_at' => '17:00', 'grace_minutes' => 15, 'crosses_midnight' => false, 'status' => 'active']),
+        'tests' => $captureUuid('shift_definition_uuid'),
+    ]),
+    requestItem('Update shift', 'PATCH', 'hr/shift-definitions/{{shift_definition_uuid}}', ['body' => jsonBody(['grace_minutes' => 20])]),
+    requestItem('List shift assignments', 'GET', 'hr/shift-assignments', ['query' => [
+        'per_page' => '{{per_page}}',
+        'search' => ['value' => 'John', 'disabled' => true],
+        'status' => ['value' => 'active', 'disabled' => true],
+        'date_from' => ['value' => '2026-10-01', 'disabled' => true],
+        'date_to' => ['value' => '2026-10-31', 'disabled' => true],
+    ]]),
+    requestItem('Assign shifts in bulk', 'POST', 'hr/shift-assignments/batch', [
+        'body' => jsonBody([
+            'shift_groups' => [[
+                'shift_definition_uuid' => '{{shift_definition_uuid}}',
+                'staff' => [[
+                    'tenant_user_uuid' => '{{tenant_user_uuid}}',
+                    'date_ranges' => [[
+                        'valid_from' => '2026-10-01',
+                        'valid_to' => '2026-10-31',
+                    ]],
+                ]],
+            ]],
+        ]),
+    ]),
+    requestItem('Update shift assignment', 'PATCH', 'hr/shift-assignments/{{shift_assignment_uuid}}', ['body' => jsonBody(['valid_to' => '2026-10-31'])]),
+    requestItem('Clock in', 'POST', 'hr/attendance/clock-in', ['body' => jsonBody([])]),
+    requestItem('Clock out', 'POST', 'hr/attendance/clock-out', ['body' => jsonBody([])]),
+    requestItem('Clock in selected staff', 'POST', 'hr/attendance/clock-in/batch', ['body' => jsonBody(['tenant_user_uuids' => ['{{tenant_user_uuid}}']])]),
+    requestItem('Clock out selected staff', 'POST', 'hr/attendance/clock-out/batch', ['body' => jsonBody(['tenant_user_uuids' => ['{{tenant_user_uuid}}']])]),
+    requestItem('My attendance', 'GET', 'hr/attendance/me'),
+    requestItem('List attendance', 'GET', 'hr/attendance-records', ['query' => ['date_from' => '2026-10-01', 'date_to' => '2026-10-31', 'per_page' => '{{per_page}}']]),
+    requestItem('Record manual attendance', 'POST', 'hr/attendance-records/manual', ['body' => jsonBody(['tenant_user_uuid' => '{{tenant_user_uuid}}', 'attendance_date' => '2026-10-01', 'shift_definition_uuid' => '{{shift_definition_uuid}}', 'status' => 'present', 'reason' => 'Recorded by an authorised staff member.'])]),
+    requestItem('Adjust attendance', 'PATCH', 'hr/attendance-records/{{attendance_uuid}}/adjust', ['body' => jsonBody(['status' => 'present', 'reason' => 'Attendance correction.'])]),
+]);
+
+$cashReconciliation = folder('15 - Cash Reconciliation', [
+    requestItem('Open business-day cash reconciliations', 'POST', 'business-days/{{business_day_uuid}}/cash-reconciliations', [
+        'body' => jsonBody([]),
+        'tests' => [
+            'const json = pm.response.json();',
+            "if (json.data && json.data[0] && json.data[0].uuid) pm.environment.set('cash_reconciliation_uuid', json.data[0].uuid);",
+        ],
+        'description' => 'Opens one reconciliation for each active branch cash account that requires reconciliation.',
+    ]),
+    requestItem('List business-day cash reconciliations', 'GET', 'business-days/{{business_day_uuid}}/cash-reconciliations', [
+        'query' => ['per_page' => '{{per_page}}'],
+    ]),
+    requestItem('Get cash reconciliation', 'GET', 'cash-reconciliations/{{cash_reconciliation_uuid}}'),
+    requestItem('Record cash movement', 'POST', 'cash-accounts/{{cash_account_uuid}}/movements', [
+        'body' => jsonBody([
+            'business_day_uuid' => '{{business_day_uuid}}',
+            'movement_reason' => 'cash_in',
+            'amount' => '10000.00',
+            'notes' => 'Manager added change float.',
+        ]),
+        'description' => 'Allowed reasons: cash_in, cash_out, or safe_drop. The selected drawer must be open.',
+    ]),
+    requestItem('Save physical cash count', 'PUT', 'cash-reconciliations/{{cash_reconciliation_uuid}}/count', [
+        'body' => jsonBody([
+            'lines' => [
+                ['denomination_value' => '50000.00', 'quantity' => 2],
+                ['denomination_value' => '10000.00', 'quantity' => 1],
+            ],
+            'notes' => 'Counted at business-day close.',
+        ]),
+        'description' => 'Replaces all denomination lines and moves the drawer to closing, preventing further cash movements.',
+    ]),
+    requestItem('Close cash reconciliation', 'POST', 'cash-reconciliations/{{cash_reconciliation_uuid}}/close', [
+        'body' => jsonBody(['notes' => 'Cash drawer closed from Postman.']),
+        'description' => 'Server calculates expected cash, counted cash, and variance, then closes the drawer.',
+    ]),
+]);
+
 $collection = [
     'info' => [
         '_postman_id' => '8f476c61-5399-4dca-bd4c-05f16c83bf75',
@@ -781,13 +1025,15 @@ $collection = [
         'type' => 'bearer',
         'bearer' => [['key' => 'token', 'value' => '{{access_token}}', 'type' => 'string']],
     ],
-    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos, $orders, $kitchen, $paymentsAndReceipts],
+    'item' => [$auth, $me, $foundation, $access, $organisation, $menu, $inventory, $pos, $orders, $kitchen, $paymentsAndReceipts, $customers, $reservations, $hr, $cashReconciliation],
     'event' => [[
         'listen' => 'prerequest',
         'script' => [
             'type' => 'text/javascript',
             'exec' => [
                 "if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }",
+                "const tenantHeader = pm.request.headers.get('X-Tenant-UUID');",
+                "if (tenantHeader && !pm.variables.replaceIn(tenantHeader).trim()) { throw new Error('Run Login successfully, or set tenant_uuid to a restaurant workspace UUID, before sending this request.'); }",
             ],
         ],
     ]],
@@ -806,6 +1052,8 @@ $environmentValues = [
     ['key' => 'branch_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'to_branch_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'business_day_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'cash_account_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'cash_reconciliation_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'role_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'permission_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'tenant_user_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
@@ -829,14 +1077,22 @@ $environmentValues = [
     ['key' => 'stock_transfer_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'stock_count_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'dining_area_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'dining_table_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'customer_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'customer_search', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'sales_channel_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'service_type_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'counter_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'branch_menu_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'order_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'order_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'kitchen_ticket_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'kitchen_ticket_item_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'payment_method_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'reservation_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'shift_definition_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'shift_assignment_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
+    ['key' => 'attendance_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'payment_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'receipt_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],
     ['key' => 'print_job_uuid', 'value' => '', 'enabled' => true, 'type' => 'default'],

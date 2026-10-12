@@ -18,7 +18,6 @@ class CloseBusinessDateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'counted_cash_amount' => ['required', 'decimal:0,2', 'min:0', 'max:9999999999999999.99'],
             'closing_notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

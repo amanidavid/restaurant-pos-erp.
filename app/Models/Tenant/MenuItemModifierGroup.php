@@ -4,10 +4,8 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MenuItemModifierGroup extends TenantModel
+class MenuItemModifierGroup extends TenantInternalModel
 {
-    public $usesUniqueIds = false;
-
     protected function casts(): array
     {
         return [

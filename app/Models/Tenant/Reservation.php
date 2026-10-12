@@ -35,4 +35,14 @@ class Reservation extends TenantModel
     {
         return $this->hasMany(ReservationTable::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

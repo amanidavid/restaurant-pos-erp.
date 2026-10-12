@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 final class ApiMessages
 {
-    public const VALIDATION_FAILED = 'Please check the highlighted details and try again.';
+    public const VALIDATION_FAILED = 'The request could not be completed because some information is missing or invalid.';
     public const AUTHENTICATION_REQUIRED = 'Please sign in to continue.';
     public const ACCESS_DENIED = 'You do not have access to this action.';
     public const RESOURCE_NOT_FOUND = 'We could not find what you requested.';

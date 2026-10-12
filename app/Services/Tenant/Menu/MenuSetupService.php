@@ -12,6 +12,7 @@ use App\Models\Tenant\MenuItem;
 use App\Models\Tenant\Recipe;
 use App\Models\Tenant\TaxCode;
 use App\Models\Tenant\UnitOfMeasure;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,25 +22,51 @@ class MenuSetupService
 {
     public function createMenuItem(array $data): MenuItem
     {
-        return DB::connection('tenant')->transaction(function () use ($data): MenuItem {
-            $item = MenuItem::query()->create([
-                'company_id' => $this->companyId(),
-                ...$this->menuItemPayload($data),
-            ]);
+        try {
+            return DB::connection('tenant')->transaction(function () use ($data): MenuItem {
+                $companyId = $this->companyId();
+                $payload = $this->menuItemPayload($data);
+                $this->assertMenuItemIsUnique($companyId, $payload);
 
-            $this->syncBranches($item, $data['branches']);
+                $item = MenuItem::query()->create([
+                    'company_id' => $companyId,
+                    ...$payload,
+                ]);
 
-            return $item->load(['menuCategory', 'taxCode', 'branchMenuItems.branch', 'branchMenuItems.kitchenSection']);
-        });
+                $this->syncBranches($item, $data['branches']);
+
+                return $item->load(['menuCategory', 'taxCode', 'branchMenuItems.branch', 'branchMenuItems.kitchenSection']);
+            });
+        } catch (QueryException $exception) {
+            if (! $this->isMenuItemUniqueViolation($exception)) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages($this->menuItemUniqueViolationMessages($exception));
+        }
     }
 
     public function updateMenuItem(MenuItem $item, array $data): MenuItem
     {
-        return DB::connection('tenant')->transaction(function () use ($item, $data): MenuItem {
-            $item->update($this->menuItemPayload($data));
+        try {
+            return DB::connection('tenant')->transaction(function () use ($item, $data): MenuItem {
+                $payload = $this->menuItemPayload($data);
+                $this->assertMenuItemIsUnique($item->company_id, [
+                    'name' => $payload['name'] ?? $item->name,
+                    'sku' => array_key_exists('sku', $payload) ? $payload['sku'] : $item->sku,
+                ], $item);
 
-            return $item->refresh()->load(['menuCategory', 'taxCode', 'branchMenuItems.branch', 'branchMenuItems.kitchenSection']);
-        });
+                $item->update($payload);
+
+                return $item->refresh()->load(['menuCategory', 'taxCode', 'branchMenuItems.branch', 'branchMenuItems.kitchenSection']);
+            });
+        } catch (QueryException $exception) {
+            if (! $this->isMenuItemUniqueViolation($exception)) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages($this->menuItemUniqueViolationMessages($exception));
+        }
     }
 
     public function syncRecipe(MenuItem $item, array $data): Recipe
@@ -187,5 +214,55 @@ class MenuSetupService
         }
 
         return (int) $companyId;
+    }
+
+    /** @param array<string, mixed> $values */
+    private function assertMenuItemIsUnique(int $companyId, array $values, ?MenuItem $item = null): void
+    {
+        $sku = $values['sku'] ?? null;
+        $duplicates = MenuItem::query()
+            ->where('company_id', $companyId)
+            ->when($item, fn ($query) => $query->whereKeyNot($item->id))
+            ->where(function ($query) use ($values, $sku): void {
+                $query->where('name', $values['name']);
+
+                if ($sku !== null) {
+                    $query->orWhere('sku', $sku);
+                }
+            })
+            ->get(['name', 'sku']);
+
+        if ($duplicates->isEmpty()) {
+            return;
+        }
+
+        $errors = [];
+
+        if ($duplicates->contains('name', $values['name'])) {
+            $errors['name'] = ['This menu item already exists.'];
+        }
+
+        if ($sku !== null && $duplicates->contains('sku', $sku)) {
+            $errors['sku'] = ['This menu item SKU already exists.'];
+        }
+
+        throw ValidationException::withMessages($errors);
+    }
+
+    private function isMenuItemUniqueViolation(QueryException $exception): bool
+    {
+        return $exception->getCode() === '23505'
+            && (str_contains($exception->getMessage(), 'menu_items_company_name_unique')
+                || str_contains($exception->getMessage(), 'menu_items_company_sku_unique'));
+    }
+
+    /** @return array<string, array<int, string>> */
+    private function menuItemUniqueViolationMessages(QueryException $exception): array
+    {
+        if (str_contains($exception->getMessage(), 'menu_items_company_name_unique')) {
+            return ['name' => ['This menu item already exists.']];
+        }
+
+        return ['sku' => ['This menu item SKU already exists.']];
     }
 }

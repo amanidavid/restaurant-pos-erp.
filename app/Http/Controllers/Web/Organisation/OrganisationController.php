@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Organisation;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Web\Organisation\IndexDepartmentRequest;
 use App\Http\Requests\Web\Organisation\StoreDepartmentRequest;
 use App\Http\Requests\Web\Organisation\StoreEmploymentTypeRequest;
 use App\Http\Requests\Web\Organisation\StoreJobPositionRequest;
@@ -12,40 +13,45 @@ use App\Http\Requests\Web\Organisation\UpdateJobPositionRequest;
 use App\Http\Resources\Web\Organisation\DepartmentResource;
 use App\Http\Resources\Web\Organisation\EmploymentTypeResource;
 use App\Http\Resources\Web\Organisation\JobPositionResource;
-use App\Models\Tenant\Company;
 use App\Models\Tenant\Department;
 use App\Models\Tenant\EmploymentType;
 use App\Models\Tenant\JobPosition;
+use App\Services\Tenant\Organisation\DepartmentService;
 use App\Support\ApiMessages;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class OrganisationController extends Controller
 {
-    public function departments(Request $request): JsonResponse
-    {
-        $this->authorize('viewAny', [Department::class, $this->currentBranch()]);
+    public function __construct(private readonly DepartmentService $departments) {}
 
-        $departments = Department::query()->with(['branch:id,uuid', 'parent:id,uuid'])->orderBy('name')->simplePaginate($this->perPage($request));
+    public function departments(IndexDepartmentRequest $request): JsonResponse
+    {
+        $branch = $this->currentBranch();
+        $this->authorize('viewAny', [Department::class, $branch]);
+
+        $departments = $this->departments->paginate($branch, $request->validated(), $this->perPage($request));
 
         return ApiResponse::resource(DepartmentResource::collection($departments), ApiMessages::listRetrieved('departments'));
     }
 
+    public function departmentTree(IndexDepartmentRequest $request): JsonResponse
+    {
+        $branch = $this->currentBranch();
+        $this->authorize('viewAny', [Department::class, $branch]);
+
+        return ApiResponse::success(
+            message: 'Department hierarchy retrieved successfully.',
+            data: $this->departments->tree($branch, $request->validated('status') ?? 'active'),
+        );
+    }
+
     public function storeDepartment(StoreDepartmentRequest $request): JsonResponse
     {
-        $this->authorize('create', [Department::class, $this->currentBranch()]);
-
-        $data = $request->validated();
-        $department = Department::query()->create([
-            'company_id' => $this->companyId(),
-            'branch_id' => $this->branchId($data['branch_uuid'] ?? null),
-            'parent_id' => $this->departmentId($data['parent_uuid'] ?? null),
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
-            'status' => $data['status'] ?? 'active',
-        ]);
+        $branch = $this->currentBranch();
+        $this->authorize('create', [Department::class, $branch]);
+        $department = $this->departments->create($branch, $request->validated());
 
         return ApiResponse::resource(
             new DepartmentResource($department->load(['branch', 'parent'])),
@@ -54,37 +60,25 @@ class OrganisationController extends Controller
         );
     }
 
-    public function updateDepartment(UpdateDepartmentRequest $request, Department $department): JsonResponse
+    public function showDepartment(Department $department): JsonResponse
     {
-        $this->authorize('update', [$department, $this->currentBranch()]);
-
-        $data = $request->validated();
-        $updates = [];
-
-        if (array_key_exists('branch_uuid', $data)) {
-            $updates['branch_id'] = $this->branchId($data['branch_uuid']);
-        }
-
-        if (array_key_exists('parent_uuid', $data)) {
-            $updates['parent_id'] = $this->departmentId($data['parent_uuid']);
-
-            if ($updates['parent_id'] === $department->id) {
-                throw ValidationException::withMessages([
-                    'parent_uuid' => ['A department cannot be its own parent.'],
-                ]);
-            }
-        }
-
-        foreach (['name', 'description', 'status'] as $field) {
-            if (array_key_exists($field, $data)) {
-                $updates[$field] = $data[$field];
-            }
-        }
-
-        $department->update($updates);
+        $branch = $this->currentBranch();
+        $this->authorize('view', [$department, $branch]);
 
         return ApiResponse::resource(
-            new DepartmentResource($department->refresh()->load(['branch', 'parent'])),
+            new DepartmentResource($this->departments->find($branch, $department)),
+            ApiMessages::detailsRetrieved('department'),
+        );
+    }
+
+    public function updateDepartment(UpdateDepartmentRequest $request, Department $department): JsonResponse
+    {
+        $branch = $this->currentBranch();
+        $this->authorize('update', [$department, $branch]);
+        $department = $this->departments->update($branch, $department, $request->validated());
+
+        return ApiResponse::resource(
+            new DepartmentResource($department),
             ApiMessages::updated('department')
         );
     }
@@ -177,24 +171,7 @@ class OrganisationController extends Controller
 
     private function companyId(): int
     {
-        return (int) Company::query()->orderBy('id')->firstOrFail(['id'])->id;
-    }
-
-    private function branchId(?string $uuid): ?int
-    {
-        if (! $uuid) {
-            return null;
-        }
-
-        $id = Branch::query()->where('uuid', $uuid)->value('id');
-
-        if (! $id) {
-            throw ValidationException::withMessages([
-                'branch_uuid' => ['The selected branch could not be found.'],
-            ]);
-        }
-
-        return (int) $id;
+        return $this->currentBranch()->company_id;
     }
 
     private function departmentId(?string $uuid): ?int
@@ -203,10 +180,14 @@ class OrganisationController extends Controller
             return null;
         }
 
-        $id = Department::query()->where('uuid', $uuid)->value('id');
+        $id = Department::query()
+            ->where('company_id', $this->companyId())
+            ->where('branch_id', $this->currentBranchId())
+            ->where('uuid', $uuid)
+            ->value('id');
 
         if (! $id) {
-            throw ValidationException::withMessages([
+            throw \Illuminate\Validation\ValidationException::withMessages([
                 'department_uuid' => ['The selected department could not be found.'],
             ]);
         }

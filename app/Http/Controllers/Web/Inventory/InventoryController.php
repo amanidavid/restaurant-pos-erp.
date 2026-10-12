@@ -64,6 +64,16 @@ class InventoryController extends Controller
         return ApiResponse::resource(new WarehouseResource($warehouse), ApiMessages::created('warehouse'), 201);
     }
 
+    public function showWarehouse(Warehouse $warehouse): JsonResponse
+    {
+        $this->authorize('view', $warehouse);
+
+        return ApiResponse::resource(
+            new WarehouseResource($warehouse->load('branch:id,uuid,name')),
+            ApiMessages::detailsRetrieved('warehouse')
+        );
+    }
+
     public function updateWarehouse(UpdateWarehouseRequest $request, Warehouse $warehouse): JsonResponse
     {
         $this->authorize('update', $warehouse);

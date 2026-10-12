@@ -1,13 +1,10 @@
-# Use this workspace to collaborate
 workspace:
   id: c59e1f8e-3d8c-4809-b421-90ebbf38f5bf
 
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
-    ../postman/collections/RMIS Restaurant POS ERP - API v1: a390bb80-eade-4f48-89f0-b3fb1bd3f11d
-
-# All resources in the `postman/` folder are automatically registered in Local View.
-# Point to additional files outside the `postman/` folder to register them individually. Example:
-#localResources:
-#  collections:
-#    - ../tests/E2E Test Collection/
+    ../postman/collections/RMIS Restaurant POS ERP - API v1: 8cb86c52-736b-4af7-9b05-9042fa44b592
+  globals:
+    ../postman/globals/workspace.globals.yaml: 132ba0b3-b578-4295-8230-7066066643d5

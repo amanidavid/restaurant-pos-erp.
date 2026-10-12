@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/attendance-records/{{attendance_uuid}}/adjust"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "status": "present",
+        "reason": "Attendance correction."
+    }
+order: 15000

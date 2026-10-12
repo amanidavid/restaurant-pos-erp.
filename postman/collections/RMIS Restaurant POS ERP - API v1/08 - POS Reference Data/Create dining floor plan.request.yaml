@@ -1,0 +1,52 @@
+$kind: http-request
+description: "Required permissions: dining_areas.create and dining_tables.create. Creates all submitted dining areas and nested tables in one transaction. The request is rejected as a whole if any row is invalid or duplicates an existing branch name."
+url: "{{base_url}}/api/v1/web/dining-areas"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "areas": [
+            {
+                "name": "Indoor Hall",
+                "description": "Main air-conditioned dining area.",
+                "tables": [
+                    {
+                        "name": "Table 1",
+                        "capacity": 4,
+                        "shape": "square"
+                    },
+                    {
+                        "name": "Table 2",
+                        "capacity": 4,
+                        "shape": "square"
+                    }
+                ]
+            },
+            {
+                "name": "Garden",
+                "description": "Outdoor dining area.",
+                "tables": [
+                    {
+                        "name": "Garden 1",
+                        "capacity": 6,
+                        "shape": "round"
+                    }
+                ]
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data[0]) {
+          pm.environment.set("dining_area_uuid", json.data[0].uuid);
+          if (json.data[0].tables && json.data[0].tables[0]) pm.environment.set("dining_table_uuid", json.data[0].tables[0].uuid);
+      }
+    language: text/javascript
+order: 8000

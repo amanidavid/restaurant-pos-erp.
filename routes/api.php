@@ -1,6 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+Broadcast::routes(['middleware' => ['tenant.auth', 'tenant.session']]);
 
 Route::prefix('v1')
     ->name('api.v1.')

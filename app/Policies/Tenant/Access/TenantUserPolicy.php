@@ -30,6 +30,13 @@ class TenantUserPolicy
         return $this->create($user, $branch);
     }
 
+    public function createStaff(User $user, Branch $branch): bool
+    {
+        return $this->access->canManage($user, 'users.invite', $branch)
+            && $this->access->canManage($user, 'hr.manage', $branch)
+            && $this->access->canManage($user, 'users.roles.update', $branch);
+    }
+
     public function view(User $user, TenantUser $tenantUser, Branch $branch): bool
     {
         return $this->canManageAssignedUser($user, $tenantUser, $branch, 'users.view');

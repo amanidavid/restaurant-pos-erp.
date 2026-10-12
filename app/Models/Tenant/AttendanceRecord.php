@@ -15,6 +15,8 @@ class AttendanceRecord extends TenantModel
             'worked_minutes' => 'integer',
             'late_minutes' => 'integer',
             'overtime_minutes' => 'integer',
+            'adjusted_at' => 'immutable_datetime',
+            'recorded_at' => 'immutable_datetime',
         ];
     }
 
@@ -36,5 +38,15 @@ class AttendanceRecord extends TenantModel
     public function shiftSession(): BelongsTo
     {
         return $this->belongsTo(ShiftSession::class);
+    }
+
+    public function adjustedBy(): BelongsTo
+    {
+        return $this->belongsTo(TenantUser::class, 'adjusted_by_tenant_user_id');
+    }
+
+    public function recordedBy(): BelongsTo
+    {
+        return $this->belongsTo(TenantUser::class, 'recorded_by_tenant_user_id');
     }
 }

@@ -18,7 +18,7 @@ class StoreDepartmentRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:140', self::SAFE_LABEL_REGEX],
             'description' => ['nullable', 'string', 'max:2000'],
-            'branch_uuid' => ['nullable', 'uuid'],
+            'branch_uuid' => ['prohibited'],
             'parent_uuid' => ['nullable', 'uuid'],
             'status' => ['nullable', Rule::in(['active', 'inactive'])],
         ];

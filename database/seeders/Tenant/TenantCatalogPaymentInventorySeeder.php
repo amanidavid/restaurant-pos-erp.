@@ -28,6 +28,7 @@ class TenantCatalogPaymentInventorySeeder extends Seeder
         $this->seedServiceTypes((int) $company->id);
         $this->seedPaymentMethods((int) $company->id);
         $this->seedStockMovementTypes();
+        $this->call(TenantShiftDefinitionSeeder::class);
     }
 
     private function seedSalesChannels(int $companyId): void
@@ -136,10 +137,8 @@ class TenantCatalogPaymentInventorySeeder extends Seeder
 
         foreach ([
             ['Cash', 'cash', false, true],
-            ['Card', 'card', true, false],
-            ['Mobile Money', 'mobile_money', true, false],
+            ['Mobile Money', 'mobile_money', false, false],
             ['Bank Transfer', 'bank_transfer', false, false],
-            ['Aggregator', 'aggregator', true, false],
         ] as [$name, $type, $provider, $change]) {
             $this->upsertRow(self::CONNECTION, 'payment_methods', [
                 'company_id' => $companyId,
@@ -151,6 +150,12 @@ class TenantCatalogPaymentInventorySeeder extends Seeder
                 'status' => 'active',
             ]);
         }
+
+        $this->connection(self::CONNECTION)
+            ->table('payment_methods')
+            ->where('company_id', $companyId)
+            ->whereIn('method_type', ['card', 'aggregator'])
+            ->update(['status' => 'inactive', 'updated_at' => now()]);
     }
 
     private function seedStockMovementTypes(): void

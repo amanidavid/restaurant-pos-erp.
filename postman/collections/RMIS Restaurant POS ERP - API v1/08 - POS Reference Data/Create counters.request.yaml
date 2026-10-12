@@ -1,0 +1,34 @@
+$kind: http-request
+description: "Required permission: counters.create. Creates all counters in one transaction. The request is rejected as a whole if any counter is invalid or duplicates an existing branch counter."
+url: "{{base_url}}/api/v1/web/counters"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "counters": [
+            {
+                "name": "Main Cashier",
+                "type": "pos"
+            },
+            {
+                "name": "Bar Counter",
+                "type": "bar"
+            },
+            {
+                "name": "Takeaway Desk",
+                "type": "takeaway"
+            }
+        ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data[0]) pm.environment.set("counter_uuid", json.data[0].uuid);
+    language: text/javascript
+order: 5000

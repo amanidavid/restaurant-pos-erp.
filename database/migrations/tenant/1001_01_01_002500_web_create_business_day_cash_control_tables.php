@@ -106,10 +106,10 @@ return new class extends Migration
         });
 
         $connection = DB::connection(self::CONNECTION);
-        $connection->statement("ALTER TABLE business_day_cash_reconciliations ADD CONSTRAINT business_day_cash_recon_status_check CHECK (status IN ('open', 'closing', 'closed', 'approved'))");
+        $connection->statement("ALTER TABLE business_day_cash_reconciliations ADD CONSTRAINT business_day_cash_recon_status_check CHECK (status IN ('open', 'closing', 'closed'))");
         $connection->statement('ALTER TABLE business_day_cash_reconciliations ADD CONSTRAINT business_day_cash_recon_dates_check CHECK (closed_at IS NULL OR closed_at >= opened_at)');
         $connection->statement('ALTER TABLE business_day_cash_reconciliations ADD CONSTRAINT business_day_cash_recon_amounts_check CHECK (opening_float_amount >= 0 AND cash_sales_amount >= 0 AND cash_refund_amount >= 0 AND cash_in_amount >= 0 AND cash_out_amount >= 0 AND safe_drop_amount >= 0 AND expected_cash_amount >= 0 AND (counted_cash_amount IS NULL OR counted_cash_amount >= 0))');
-        $connection->statement("ALTER TABLE shift_cash_reconciliations ADD CONSTRAINT shift_cash_recon_status_check CHECK (status IN ('open', 'closing', 'closed', 'approved'))");
+        $connection->statement("ALTER TABLE shift_cash_reconciliations ADD CONSTRAINT shift_cash_recon_status_check CHECK (status IN ('open', 'closing', 'closed'))");
         $connection->statement('ALTER TABLE shift_cash_reconciliations ADD CONSTRAINT shift_cash_recon_dates_check CHECK (closed_at IS NULL OR closed_at >= opened_at)');
         $connection->statement('ALTER TABLE shift_cash_reconciliations ADD CONSTRAINT shift_cash_recon_amounts_check CHECK (opening_float_amount >= 0 AND cash_sales_amount >= 0 AND cash_refund_amount >= 0 AND cash_in_amount >= 0 AND cash_out_amount >= 0 AND safe_drop_amount >= 0 AND expected_cash_amount >= 0 AND (counted_cash_amount IS NULL OR counted_cash_amount >= 0))');
         $connection->statement('ALTER TABLE cash_count_lines ADD CONSTRAINT cash_count_lines_values_check CHECK (denomination_value > 0 AND quantity > 0 AND line_amount = denomination_value * quantity)');

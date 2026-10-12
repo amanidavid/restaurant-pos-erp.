@@ -4,10 +4,8 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ReservationTable extends TenantModel
+class ReservationTable extends TenantInternalModel
 {
-    public $usesUniqueIds = false;
-
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);

@@ -10,12 +10,17 @@ use App\Http\Controllers\Web\Auth\RegisterTenantController;
 use App\Http\Controllers\Web\Auth\ResetPasswordController;
 use App\Http\Controllers\Web\Auth\TenantRegistrationStatusController;
 use App\Http\Controllers\Web\Auth\VerifyPasswordResetOtpController;
-use App\Http\Controllers\Web\Kitchen\KitchenTicketController;
+use App\Http\Controllers\Web\Customers\CustomerController;
+use App\Http\Controllers\Web\Finance\CashAccountHistoryController;
+use App\Http\Controllers\Web\Finance\CashReconciliationController;
 use App\Http\Controllers\Web\Foundation\BranchConfigurationController;
 use App\Http\Controllers\Web\Foundation\BranchController;
 use App\Http\Controllers\Web\Foundation\BusinessDateController;
+use App\Http\Controllers\Web\Foundation\BusinessDayHistoryController;
 use App\Http\Controllers\Web\Foundation\CompanyProfileController;
+use App\Http\Controllers\Web\Hr\TimekeepingController;
 use App\Http\Controllers\Web\Inventory\InventoryController;
+use App\Http\Controllers\Web\Kitchen\KitchenTicketController;
 use App\Http\Controllers\Web\Me\CurrentUserController;
 use App\Http\Controllers\Web\Me\CurrentUserPermissionsController;
 use App\Http\Controllers\Web\Menu\CatalogMasterController;
@@ -26,11 +31,14 @@ use App\Http\Controllers\Web\Menu\MenuItemController;
 use App\Http\Controllers\Web\Menu\MenuItemImageController;
 use App\Http\Controllers\Web\Organisation\OrganisationController;
 use App\Http\Controllers\Web\Organisation\StaffProfileController;
+use App\Http\Controllers\Web\Pos\Counter\CounterSetupController;
+use App\Http\Controllers\Web\Pos\Dining\DiningFloorPlanController;
 use App\Http\Controllers\Web\Pos\OrderController;
 use App\Http\Controllers\Web\Pos\PaymentController;
-use App\Http\Controllers\Web\Pos\ReceiptController;
-use App\Http\Controllers\Web\Pos\PrintJobController;
 use App\Http\Controllers\Web\Pos\PosReferenceController;
+use App\Http\Controllers\Web\Pos\PrintJobController;
+use App\Http\Controllers\Web\Pos\ReceiptController;
+use App\Http\Controllers\Web\Reservations\ReservationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('web')
@@ -83,8 +91,20 @@ Route::prefix('web')
                 Route::get('service-types', [PosReferenceController::class, 'serviceTypes'])->name('pos.service-types.index');
                 Route::get('payment-methods', [PosReferenceController::class, 'paymentMethods'])->name('pos.payment-methods.index');
                 Route::get('counters', [PosReferenceController::class, 'counters'])->name('pos.counters.index');
-                Route::get('dining-areas', [PosReferenceController::class, 'diningAreas'])->name('pos.dining-areas.index');
-                Route::get('dining-tables', [PosReferenceController::class, 'diningTables'])->name('pos.dining-tables.index');
+                Route::post('counters', [CounterSetupController::class, 'store'])->name('pos.counters.store');
+                Route::patch('counters/{counter}', [CounterSetupController::class, 'update'])->name('pos.counters.update');
+                Route::middleware('tenant.branch')->group(function (): void {
+                    Route::get('me/shifts', [TimekeepingController::class, 'myShifts'])->name('me.shifts.index');
+                    Route::get('dining-areas', [PosReferenceController::class, 'diningAreas'])->name('pos.dining-areas.index');
+                    Route::post('dining-areas', [DiningFloorPlanController::class, 'store'])->name('pos.dining-areas.store');
+                    Route::get('dining-areas/{diningArea}', [DiningFloorPlanController::class, 'showArea'])->name('pos.dining-areas.show');
+                    Route::patch('dining-areas/{diningArea}', [DiningFloorPlanController::class, 'updateArea'])->name('pos.dining-areas.update');
+                    Route::get('dining-tables', [PosReferenceController::class, 'diningTables'])->name('pos.dining-tables.index');
+                    Route::post('dining-tables', [DiningFloorPlanController::class, 'storeTable'])->name('pos.dining-tables.store');
+                    Route::get('dining-tables/{diningTable}', [DiningFloorPlanController::class, 'showTable'])->name('pos.dining-tables.show');
+                    Route::patch('dining-tables/{diningTable}', [DiningFloorPlanController::class, 'updateTable'])->name('pos.dining-tables.update');
+                });
+                Route::apiResource('customers', CustomerController::class)->only(['index', 'store', 'show', 'update']);
                 Route::get('orders', [OrderController::class, 'index'])->name('pos.orders.index');
                 Route::post('orders', [OrderController::class, 'store'])->name('pos.orders.store');
                 Route::get('orders/{order}', [OrderController::class, 'show'])->name('pos.orders.show');
@@ -105,6 +125,14 @@ Route::prefix('web')
                 Route::post('orders/{order}/serve', [OrderController::class, 'serve'])->name('pos.orders.serve');
                 Route::post('orders/{order}/close', [OrderController::class, 'close'])->name('pos.orders.close');
 
+                Route::get('reservations', [ReservationController::class, 'index'])->name('reservations.index');
+                Route::post('reservations', [ReservationController::class, 'store'])->name('reservations.store');
+                Route::get('reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show');
+                Route::post('reservations/{reservation}/seat', [ReservationController::class, 'seat'])->name('reservations.seat');
+                Route::post('reservations/{reservation}/complete', [ReservationController::class, 'complete'])->name('reservations.complete');
+                Route::post('reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+                Route::post('reservations/{reservation}/no-show', [ReservationController::class, 'noShow'])->name('reservations.no-show');
+
                 Route::get('kitchen-tickets', [KitchenTicketController::class, 'index'])->name('kitchen.tickets.index');
                 Route::get('kitchen-tickets/{kitchenTicket}', [KitchenTicketController::class, 'show'])->name('kitchen.tickets.show');
                 Route::post('kitchen-tickets/{kitchenTicket}/items/{kitchenTicketItem}/start', [KitchenTicketController::class, 'start'])->name('kitchen.tickets.items.start');
@@ -119,11 +147,29 @@ Route::prefix('web')
                 Route::get('branches/{branch}/business-day/current', [BusinessDateController::class, 'current'])
                     ->name('branches.business-day.current');
 
+                Route::get('branches/{branch}/business-days', [BusinessDayHistoryController::class, 'index'])
+                    ->middleware(['tenant.branch', 'throttle:60,1'])->name('branches.business-days.index');
+
+                Route::get('cash-accounts/{cashAccount}/reconciliations', [CashAccountHistoryController::class, 'index'])
+                    ->middleware(['tenant.branch', 'throttle:60,1'])->name('cash-accounts.reconciliations.index');
+
+                Route::get('cash-reconciliations/{reconciliation}/movements', [CashAccountHistoryController::class, 'movements'])
+                    ->middleware(['tenant.branch', 'throttle:60,1'])->name('cash-reconciliations.movements.index');
+
                 Route::post('branches/{branch}/business-days/open', [BusinessDateController::class, 'open'])
                     ->name('branches.business-days.open');
 
                 Route::post('branches/{branch}/business-days/{businessDay}/close', [BusinessDateController::class, 'close'])
                     ->name('branches.business-days.close');
+
+                Route::middleware('tenant.branch')->group(function (): void {
+                    Route::post('business-days/{businessDay}/cash-reconciliations', [CashReconciliationController::class, 'open'])->name('cash-reconciliations.open');
+                    Route::get('business-days/{businessDay}/cash-reconciliations', [CashReconciliationController::class, 'index'])->name('cash-reconciliations.index');
+                    Route::get('cash-reconciliations/{reconciliation}', [CashReconciliationController::class, 'show'])->name('cash-reconciliations.show');
+                    Route::put('cash-reconciliations/{reconciliation}/count', [CashReconciliationController::class, 'count'])->name('cash-reconciliations.count');
+                    Route::post('cash-reconciliations/{reconciliation}/close', [CashReconciliationController::class, 'close'])->name('cash-reconciliations.close');
+                    Route::post('cash-accounts/{cashAccount}/movements', [CashReconciliationController::class, 'movement'])->name('cash-movements.store');
+                });
 
                 Route::apiResource('branches', BranchController::class)
                     ->only(['index', 'store', 'show', 'update']);
@@ -139,6 +185,7 @@ Route::prefix('web')
                     ->group(function (): void {
                         Route::get('warehouses', [InventoryController::class, 'warehouses'])->name('warehouses.index');
                         Route::post('warehouses', [InventoryController::class, 'storeWarehouse'])->name('warehouses.store');
+                        Route::get('warehouses/{warehouse}', [InventoryController::class, 'showWarehouse'])->name('warehouses.show');
                         Route::patch('warehouses/{warehouse}', [InventoryController::class, 'updateWarehouse'])->name('warehouses.update');
                         Route::get('stock-summary', [InventoryController::class, 'summary'])->name('stock-summary.index');
                         Route::get('stock-batches', [InventoryController::class, 'batches'])->name('stock-batches.index');
@@ -200,27 +247,51 @@ Route::prefix('web')
                 Route::put('access/users/{tenantUser}/branches/{branch}/permissions', [TenantUserController::class, 'syncPermissions'])
                     ->name('access.users.branch-permissions.sync');
 
-                Route::get('organisation/departments', [OrganisationController::class, 'departments'])->name('organisation.departments.index');
-                Route::post('organisation/departments', [OrganisationController::class, 'storeDepartment'])->name('organisation.departments.store');
-                Route::patch('organisation/departments/{department}', [OrganisationController::class, 'updateDepartment'])->name('organisation.departments.update');
+                Route::middleware('tenant.branch')->group(function (): void {
+                    Route::get('organisation/departments', [OrganisationController::class, 'departments'])->name('organisation.departments.index');
+                    Route::get('organisation/departments/tree', [OrganisationController::class, 'departmentTree'])->name('organisation.departments.tree');
+                    Route::post('organisation/departments', [OrganisationController::class, 'storeDepartment'])->name('organisation.departments.store');
+                    Route::get('organisation/departments/{department}', [OrganisationController::class, 'showDepartment'])->name('organisation.departments.show');
+                    Route::patch('organisation/departments/{department}', [OrganisationController::class, 'updateDepartment'])->name('organisation.departments.update');
 
-                Route::get('organisation/employment-types', [OrganisationController::class, 'employmentTypes'])->name('organisation.employment-types.index');
-                Route::post('organisation/employment-types', [OrganisationController::class, 'storeEmploymentType'])->name('organisation.employment-types.store');
-                Route::patch('organisation/employment-types/{employmentType}', [OrganisationController::class, 'updateEmploymentType'])->name('organisation.employment-types.update');
+                    Route::get('organisation/employment-types', [OrganisationController::class, 'employmentTypes'])->name('organisation.employment-types.index');
+                    Route::post('organisation/employment-types', [OrganisationController::class, 'storeEmploymentType'])->name('organisation.employment-types.store');
+                    Route::patch('organisation/employment-types/{employmentType}', [OrganisationController::class, 'updateEmploymentType'])->name('organisation.employment-types.update');
 
-                Route::get('organisation/job-positions', [OrganisationController::class, 'jobPositions'])->name('organisation.job-positions.index');
-                Route::post('organisation/job-positions', [OrganisationController::class, 'storeJobPosition'])->name('organisation.job-positions.store');
-                Route::patch('organisation/job-positions/{jobPosition}', [OrganisationController::class, 'updateJobPosition'])->name('organisation.job-positions.update');
+                    Route::get('organisation/job-positions', [OrganisationController::class, 'jobPositions'])->name('organisation.job-positions.index');
+                    Route::post('organisation/job-positions', [OrganisationController::class, 'storeJobPosition'])->name('organisation.job-positions.store');
+                    Route::patch('organisation/job-positions/{jobPosition}', [OrganisationController::class, 'updateJobPosition'])->name('organisation.job-positions.update');
+                    Route::post('staff/users', [StaffProfileController::class, 'store'])->name('staff.users.store');
+                    Route::get('staff/users/{tenantUser}/profile', [StaffProfileController::class, 'show'])->name('staff.users.profile.show');
+                    Route::patch('staff/users/{tenantUser}/profile', [StaffProfileController::class, 'update'])->name('staff.users.profile.update');
+                    Route::get('staff/users/{tenantUser}/job-history', [StaffProfileController::class, 'jobHistory'])->name('staff.users.job-history.index');
+                    Route::post('staff/users/{tenantUser}/job-history', [StaffProfileController::class, 'storeJobHistory'])->name('staff.users.job-history.store');
 
-                Route::get('staff/users/{tenantUser}/profile', [StaffProfileController::class, 'show'])->name('staff.users.profile.show');
-                Route::patch('staff/users/{tenantUser}/profile', [StaffProfileController::class, 'update'])->name('staff.users.profile.update');
-                Route::get('staff/users/{tenantUser}/job-history', [StaffProfileController::class, 'jobHistory'])->name('staff.users.job-history.index');
-                Route::post('staff/users/{tenantUser}/job-history', [StaffProfileController::class, 'storeJobHistory'])->name('staff.users.job-history.store');
+                    Route::get('hr/shift-definitions', [TimekeepingController::class, 'shiftDefinitions'])->name('hr.shift-definitions.index');
+                    Route::post('hr/shift-definitions', [TimekeepingController::class, 'storeShiftDefinition'])->name('hr.shift-definitions.store');
+                    Route::patch('hr/shift-definitions/{shiftDefinition}', [TimekeepingController::class, 'updateShiftDefinition'])->name('hr.shift-definitions.update');
+
+                    Route::get('hr/shift-assignments', [TimekeepingController::class, 'shiftAssignments'])->name('hr.shift-assignments.index');
+                    Route::post('hr/shift-assignments', [TimekeepingController::class, 'storeShiftAssignment'])->name('hr.shift-assignments.store');
+                    Route::post('hr/shift-assignments/batch', [TimekeepingController::class, 'storeBatchShiftAssignments'])->name('hr.shift-assignments.batch.store');
+                    Route::patch('hr/shift-assignments/{shiftAssignment}', [TimekeepingController::class, 'updateShiftAssignment'])->name('hr.shift-assignments.update');
+
+                    Route::post('hr/attendance/clock-in', [TimekeepingController::class, 'clockIn'])->middleware('throttle:10,1')->name('hr.attendance.clock-in');
+                    Route::post('hr/attendance/clock-out', [TimekeepingController::class, 'clockOut'])->middleware('throttle:10,1')->name('hr.attendance.clock-out');
+                    Route::post('hr/attendance/clock-in/batch', [TimekeepingController::class, 'batchClockIn'])->middleware('throttle:10,1')->name('hr.attendance.clock-in.batch');
+                    Route::post('hr/attendance/clock-out/batch', [TimekeepingController::class, 'batchClockOut'])->middleware('throttle:10,1')->name('hr.attendance.clock-out.batch');
+                    Route::get('hr/attendance/me', [TimekeepingController::class, 'myAttendance'])->name('hr.attendance.me');
+                    Route::get('hr/attendance-records', [TimekeepingController::class, 'attendance'])->name('hr.attendance-records.index');
+                    Route::post('hr/attendance-records/manual', [TimekeepingController::class, 'storeManualAttendance'])->name('hr.attendance-records.manual.store');
+                    Route::patch('hr/attendance-records/{attendanceRecord}/adjust', [TimekeepingController::class, 'adjustAttendance'])->name('hr.attendance-records.adjust');
+                });
 
                 Route::get('menu-items', [MenuItemController::class, 'index'])->name('menu-items.index');
                 Route::post('menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
                 Route::get('menu-items/export', [MenuImportExportController::class, 'export'])->name('menu-items.export');
                 Route::post('menu-items/import', [MenuImportExportController::class, 'import'])->name('menu-items.import');
+                Route::get('branches/{branch}/menu-items', [MenuConfigurationController::class, 'branchMenuItems'])->name('branches.menu-items.index');
+                Route::get('menu-items/{menuItem}', [MenuItemController::class, 'show'])->name('menu-items.show');
                 Route::patch('menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
                 Route::post('menu-items/{menuItem}/image', [MenuItemImageController::class, 'store'])->name('menu-items.image.store');
                 Route::get('menu-items/{menuItem}/combo', [ComboProductController::class, 'show'])->name('menu-items.combo.show');

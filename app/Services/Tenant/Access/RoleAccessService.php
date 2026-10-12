@@ -57,8 +57,19 @@ class RoleAccessService
         $this->assertEditable($role);
 
         DB::connection('tenant')->transaction(function () use ($role): void {
-            $role->permissions()->detach();
-            $role->delete();
+            // Spatie's model delete hook follows the authenticated User model,
+            // which is intentionally stored on the landlord connection. These
+            // role assignment pivots belong exclusively to the tenant database.
+            DB::connection('tenant')->table('model_has_roles')
+                ->where('role_id', $role->id)
+                ->delete();
+
+            DB::connection('tenant')->table('role_has_permissions')
+                ->where('role_id', $role->id)
+                ->delete();
+
+            // Query-builder deletion avoids Spatie's cross-connection hook.
+            Role::query()->whereKey($role->id)->delete();
         });
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

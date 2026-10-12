@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/me/shifts?from=2026-10-01&to=2026-10-31"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  from: 2026-10-01
+  to: 2026-10-31
+order: 1000

@@ -138,13 +138,13 @@
                                 "login"
                             ]
                         },
-                        "description": "Authenticates centrally and automatically resolves a single active restaurant workspace. A successful response stores the tenant UUID, access token, and active branch UUID. If multiple workspaces are returned, repeat login with the selected tenant_uuid in the JSON body.",
+                        "description": "Authenticates centrally and automatically resolves a single active restaurant workspace. A successful response stores the tenant UUID, access token, and active branch UUID. If a tenant selection response is returned, copy its selected tenant UUID into the active environment and send Login again; the request includes it automatically.",
                         "auth": {
                             "type": "noauth"
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"login\": \"{{login}}\",\n    \"password\": \"{{password}}\",\n    \"device_name\": \"Postman Desktop\",\n    \"device_type\": \"desktop\",\n    \"branch_uuid\": \"{{branch_uuid}}\"\n}",
+                            "raw": "{\n    \"login\": \"{{login}}\",\n    \"password\": \"{{password}}\",\n    \"tenant_uuid\": \"{{tenant_uuid}}\",\n    \"device_name\": \"Postman Desktop\",\n    \"device_type\": \"desktop\",\n    \"branch_uuid\": \"{{branch_uuid}}\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -162,6 +162,7 @@
                                     "const json = pm.response.json();",
                                     "if (json.data && json.data.tenant_uuid) pm.environment.set('tenant_uuid', json.data.tenant_uuid);",
                                     "if (json.data && json.data.access_token) pm.environment.set('access_token', json.data.access_token);",
+                                    "if (json.data && json.data.requires_tenant_selection) pm.environment.unset('access_token');",
                                     "if (json.data && json.data.tenant_user && json.data.tenant_user.uuid) pm.environment.set('tenant_user_uuid', json.data.tenant_user.uuid);",
                                     "if (json.data && json.data.active_branch_uuid) pm.environment.set('branch_uuid', json.data.active_branch_uuid);"
                                 ]
@@ -978,10 +979,10 @@
                                 "close"
                             ]
                         },
-                        "description": null,
+                        "description": "Requires every reconciliation-required drawer to be closed. The server aggregates expected, counted, and variance amounts from those drawer reconciliations.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"counted_cash_amount\": \"100000.00\",\n    \"closing_notes\": \"Closed from Postman.\"\n}",
+                            "raw": "{\n    \"closing_notes\": \"Closed from Postman.\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -3054,6 +3055,91 @@
                             ]
                         },
                         {
+                            "name": "List branch menu items",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Tenant-UUID",
+                                        "value": "{{tenant_uuid}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/web/branches/{{branch_uuid}}/menu-items",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "web",
+                                        "branches",
+                                        "{{branch_uuid}}",
+                                        "menu-items"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "per_page",
+                                            "value": "{{per_page}}"
+                                        },
+                                        {
+                                            "key": "search",
+                                            "value": "Beef",
+                                            "disabled": true,
+                                            "description": null
+                                        },
+                                        {
+                                            "key": "menu_category_uuid",
+                                            "value": "{{menu_category_uuid}}",
+                                            "disabled": true,
+                                            "description": null
+                                        }
+                                    ]
+                                },
+                                "description": null
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get menu item",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Tenant-UUID",
+                                        "value": "{{tenant_uuid}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/web/menu-items/{{menu_item_uuid}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "web",
+                                        "menu-items",
+                                        "{{menu_item_uuid}}"
+                                    ]
+                                },
+                                "description": "Returns menu item details, branch assignments, and configured modifier groups/options."
+                            },
+                            "response": []
+                        },
+                        {
                             "name": "Update menu item",
                             "request": {
                                 "method": "PATCH",
@@ -3796,6 +3882,40 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Get warehouse",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/inventory/warehouses/{{warehouse_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "inventory",
+                                "warehouses",
+                                "{{warehouse_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
                 },
                 {
                     "name": "Update warehouse",
@@ -4733,7 +4853,7 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: sales_channels.view."
                     },
                     "response": []
                 },
@@ -4775,7 +4895,7 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: service_types.view."
                     },
                     "response": []
                 },
@@ -4817,7 +4937,7 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: payment_methods.view."
                     },
                     "response": [],
                     "event": [
@@ -4871,7 +4991,112 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: counters.view."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create counters",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/counters",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "counters"
+                            ]
+                        },
+                        "description": "Required permission: counters.create. Creates all counters in one transaction. The request is rejected as a whole if any counter is invalid or duplicates an existing branch counter.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"counters\": [\n        {\n            \"name\": \"Main Cashier\",\n            \"type\": \"pos\"\n        },\n        {\n            \"name\": \"Bar Counter\",\n            \"type\": \"bar\"\n        },\n        {\n            \"name\": \"Takeaway Desk\",\n            \"type\": \"takeaway\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) pm.environment.set(\"counter_uuid\", json.data[0].uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Update counter",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/counters/{{counter_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "counters",
+                                "{{counter_uuid}}"
+                            ]
+                        },
+                        "description": "Required permission: counters.update.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Main Cashier\",\n    \"type\": \"pos\",\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
                     },
                     "response": []
                 },
@@ -4913,7 +5138,148 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: dining_areas.view."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create dining floor plan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-areas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-areas"
+                            ]
+                        },
+                        "description": "Required permissions: dining_areas.create and dining_tables.create. Creates all submitted dining areas and nested tables in one transaction. The request is rejected as a whole if any row is invalid or duplicates an existing branch name.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"areas\": [\n        {\n            \"name\": \"Indoor Hall\",\n            \"description\": \"Main air-conditioned dining area.\",\n            \"tables\": [\n                {\n                    \"name\": \"Table 1\",\n                    \"capacity\": 4,\n                    \"shape\": \"square\"\n                },\n                {\n                    \"name\": \"Table 2\",\n                    \"capacity\": 4,\n                    \"shape\": \"square\"\n                }\n            ]\n        },\n        {\n            \"name\": \"Garden\",\n            \"description\": \"Outdoor dining area.\",\n            \"tables\": [\n                {\n                    \"name\": \"Garden 1\",\n                    \"capacity\": 6,\n                    \"shape\": \"round\"\n                }\n            ]\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) {",
+                                    "    pm.environment.set(\"dining_area_uuid\", json.data[0].uuid);",
+                                    "    if (json.data[0].tables && json.data[0].tables[0]) pm.environment.set(\"dining_table_uuid\", json.data[0].tables[0].uuid);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get dining area",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-areas/{{dining_area_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-areas",
+                                "{{dining_area_uuid}}"
+                            ]
+                        },
+                        "description": "Required permission: dining_areas.view. Returns the area, tables_count, and nested tables."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update dining area",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-areas/{{dining_area_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-areas",
+                                "{{dining_area_uuid}}"
+                            ]
+                        },
+                        "description": "Required permission: dining_areas.update.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Indoor Hall\",\n    \"description\": \"Updated dining area description.\",\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
                     },
                     "response": []
                 },
@@ -4961,7 +5327,133 @@
                                 }
                             ]
                         },
-                        "description": null
+                        "description": "Required permission: dining_tables.view."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create dining table",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-tables",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-tables"
+                            ]
+                        },
+                        "description": "Required permission: dining_tables.create. Creates one table and assigns it to an existing dining area.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"dining_area_uuid\": \"{{dining_area_uuid}}\",\n    \"name\": \"Table 3\",\n    \"capacity\": 4,\n    \"shape\": \"square\",\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get dining table",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-tables/{{dining_table_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-tables",
+                                "{{dining_table_uuid}}"
+                            ]
+                        },
+                        "description": "Required permission: dining_tables.view. Returns the table and its dining area."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update dining table",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/dining-tables/{{dining_table_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "dining-tables",
+                                "{{dining_table_uuid}}"
+                            ]
+                        },
+                        "description": "Required permission: dining_tables.update.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Table 1\",\n    \"capacity\": 4,\n    \"shape\": \"square\",\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
                     },
                     "response": []
                 }
@@ -6067,6 +6559,1564 @@
                     "response": []
                 }
             ]
+        },
+        {
+            "name": "12 - Customers",
+            "item": [
+                {
+                    "name": "List customers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/customers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "customers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "{{customer_search}}"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) pm.environment.set('customer_uuid', json.data[0].uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create customer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/customers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "customers"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Asha Mtega\",\n    \"email\": \"asha.mtega@example.test\",\n    \"phone\": \"+255700000000\",\n    \"tax_number\": null,\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('customer_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get customer",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/customers/{{customer_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "customers",
+                                "{{customer_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update customer",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/customers/{{customer_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "customers",
+                                "{{customer_uuid}}"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"+255700000001\",\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "13 - Reservations",
+            "item": [
+                {
+                    "name": "List reservations",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations"
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "today"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0]) pm.environment.set('reservation_uuid', json.data[0].uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create paid reservation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations"
+                            ]
+                        },
+                        "description": "A completed manual payment is required before a reservation is recorded.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"customer_name\": \"Reservation Guest\",\n    \"customer_phone\": \"+255700000000\",\n    \"guest_count\": 2,\n    \"reserved_from\": \"2026-10-01T18:00:00+03:00\",\n    \"reserved_to\": \"2026-10-01T20:00:00+03:00\",\n    \"dining_table_uuids\": [\n        \"{{dining_table_uuid}}\"\n    ],\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"received_amount\": \"10000.00\",\n    \"notes\": \"Deposit collected at reservation time.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('reservation_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get reservation",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations",
+                                "{{reservation_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Seat reservation and open order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}/seat",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations",
+                                "{{reservation_uuid}}",
+                                "seat"
+                            ]
+                        },
+                        "description": "Creates exactly one linked POS order. The reservation deposit is applied as items are added.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"service_type_uuid\": \"{{service_type_uuid}}\",\n    \"sales_channel_uuid\": \"{{sales_channel_uuid}}\",\n    \"counter_uuid\": \"{{counter_uuid}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.order) pm.environment.set('order_uuid', json.data.order.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Complete reservation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}/complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations",
+                                "{{reservation_uuid}}",
+                                "complete"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel reservation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations",
+                                "{{reservation_uuid}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Guest cancelled before arrival.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark reservation no-show",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/reservations/{{reservation_uuid}}/no-show",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "reservations",
+                                "{{reservation_uuid}}",
+                                "no-show"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Guest did not arrive.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "14 - Shifts and Attendance",
+            "item": [
+                {
+                    "name": "My shifts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/me/shifts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "me",
+                                "shifts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "from",
+                                    "value": "2026-10-01"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "2026-10-31"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List shifts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-definitions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-definitions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create shift",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-definitions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-definitions"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Morning Shift\",\n    \"starts_at\": \"08:00\",\n    \"ends_at\": \"17:00\",\n    \"grace_minutes\": 15,\n    \"crosses_midnight\": false,\n    \"status\": \"active\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data.uuid) pm.environment.set('shift_definition_uuid', json.data.uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Update shift",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-definitions/{{shift_definition_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-definitions",
+                                "{{shift_definition_uuid}}"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"grace_minutes\": 20\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List shift assignments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-assignments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-assignments"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "John",
+                                    "disabled": true,
+                                    "description": null
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "active",
+                                    "disabled": true,
+                                    "description": null
+                                },
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-10-01",
+                                    "disabled": true,
+                                    "description": null
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-10-31",
+                                    "disabled": true,
+                                    "description": null
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Assign shifts in bulk",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-assignments/batch",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-assignments",
+                                "batch"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"shift_groups\": [\n        {\n            \"shift_definition_uuid\": \"{{shift_definition_uuid}}\",\n            \"staff\": [\n                {\n                    \"tenant_user_uuid\": \"{{tenant_user_uuid}}\",\n                    \"date_ranges\": [\n                        {\n                            \"valid_from\": \"2026-10-01\",\n                            \"valid_to\": \"2026-10-31\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update shift assignment",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/shift-assignments/{{shift_assignment_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "shift-assignments",
+                                "{{shift_assignment_uuid}}"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"valid_to\": \"2026-10-31\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Clock in",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance/clock-in",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance",
+                                "clock-in"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Clock out",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance/clock-out",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance",
+                                "clock-out"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Clock in selected staff",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance/clock-in/batch",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance",
+                                "clock-in",
+                                "batch"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tenant_user_uuids\": [\n        \"{{tenant_user_uuid}}\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Clock out selected staff",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance/clock-out/batch",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance",
+                                "clock-out",
+                                "batch"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tenant_user_uuids\": [\n        \"{{tenant_user_uuid}}\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "My attendance",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance",
+                                "me"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List attendance",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance-records",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance-records"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-10-01"
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-10-31"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Record manual attendance",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance-records/manual",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance-records",
+                                "manual"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tenant_user_uuid\": \"{{tenant_user_uuid}}\",\n    \"attendance_date\": \"2026-10-01\",\n    \"shift_definition_uuid\": \"{{shift_definition_uuid}}\",\n    \"status\": \"present\",\n    \"reason\": \"Recorded by an authorised staff member.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Adjust attendance",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/hr/attendance-records/{{attendance_uuid}}/adjust",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "hr",
+                                "attendance-records",
+                                "{{attendance_uuid}}",
+                                "adjust"
+                            ]
+                        },
+                        "description": null,
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"present\",\n    \"reason\": \"Attendance correction.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "15 - Cash Reconciliation",
+            "item": [
+                {
+                    "name": "Open business-day cash reconciliations",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/business-days/{{business_day_uuid}}/cash-reconciliations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "business-days",
+                                "{{business_day_uuid}}",
+                                "cash-reconciliations"
+                            ]
+                        },
+                        "description": "Opens one reconciliation for each active branch cash account that requires reconciliation.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const json = pm.response.json();",
+                                    "if (json.data && json.data[0] && json.data[0].uuid) pm.environment.set('cash_reconciliation_uuid', json.data[0].uuid);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "List business-day cash reconciliations",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/business-days/{{business_day_uuid}}/cash-reconciliations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "business-days",
+                                "{{business_day_uuid}}",
+                                "cash-reconciliations"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get cash reconciliation",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/cash-reconciliations/{{cash_reconciliation_uuid}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "cash-reconciliations",
+                                "{{cash_reconciliation_uuid}}"
+                            ]
+                        },
+                        "description": null
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Record cash movement",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/cash-accounts/{{cash_account_uuid}}/movements",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "cash-accounts",
+                                "{{cash_account_uuid}}",
+                                "movements"
+                            ]
+                        },
+                        "description": "Allowed reasons: cash_in, cash_out, or safe_drop. The selected drawer must be open.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"business_day_uuid\": \"{{business_day_uuid}}\",\n    \"movement_reason\": \"cash_in\",\n    \"amount\": \"10000.00\",\n    \"notes\": \"Manager added change float.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Save physical cash count",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/cash-reconciliations/{{cash_reconciliation_uuid}}/count",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "cash-reconciliations",
+                                "{{cash_reconciliation_uuid}}",
+                                "count"
+                            ]
+                        },
+                        "description": "Replaces all denomination lines and moves the drawer to closing, preventing further cash movements.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"denomination_value\": \"50000.00\",\n            \"quantity\": 2\n        },\n        {\n            \"denomination_value\": \"10000.00\",\n            \"quantity\": 1\n        }\n    ],\n    \"notes\": \"Counted at business-day close.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Close cash reconciliation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-Tenant-UUID",
+                                "value": "{{tenant_uuid}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/web/cash-reconciliations/{{cash_reconciliation_uuid}}/close",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "web",
+                                "cash-reconciliations",
+                                "{{cash_reconciliation_uuid}}",
+                                "close"
+                            ]
+                        },
+                        "description": "Server calculates expected cash, counted cash, and variance, then closes the drawer.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"notes\": \"Cash drawer closed from Postman.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
         }
     ],
     "event": [
@@ -6075,7 +8125,9 @@
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }"
+                    "if (!pm.environment.get('base_url')) { throw new Error('Select the RMIS local environment before sending requests.'); }",
+                    "const tenantHeader = pm.request.headers.get('X-Tenant-UUID');",
+                    "if (tenantHeader && !pm.variables.replaceIn(tenantHeader).trim()) { throw new Error('Run Login successfully, or set tenant_uuid to a restaurant workspace UUID, before sending this request.'); }"
                 ]
             }
         }

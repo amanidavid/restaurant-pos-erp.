@@ -1,0 +1,18 @@
+$kind: http-request
+description: "Allowed reasons: cash_in, cash_out, or safe_drop. The selected drawer must be open."
+url: "{{base_url}}/api/v1/web/cash-accounts/{{cash_account_uuid}}/movements"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "business_day_uuid": "{{business_day_uuid}}",
+        "movement_reason": "cash_in",
+        "amount": "10000.00",
+        "notes": "Manager added change float."
+    }
+order: 4000

@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/orders/{{order_uuid}}/items"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "items": [
+            {
+                "branch_menu_item_uuid": "{{branch_menu_item_uuid}}",
+                "quantity": "1.0000",
+                "modifiers": []
+            }
+        ]
+    }
+order: 5000

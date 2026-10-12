@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/orders/{{order_uuid}}/payments"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "payment_method_uuid": "{{payment_method_uuid}}",
+        "received_amount": "10000.00",
+        "notes": "Manual payment recorded from Postman."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('payment_uuid', json.data.uuid);
+    language: text/javascript
+order: 2000

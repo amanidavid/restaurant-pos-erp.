@@ -1,0 +1,31 @@
+$kind: http-request
+description: A completed manual payment is required before a reservation is recorded.
+url: "{{base_url}}/api/v1/web/reservations"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "customer_name": "Reservation Guest",
+        "customer_phone": "+255700000000",
+        "guest_count": 2,
+        "reserved_from": "2026-10-01T18:00:00+03:00",
+        "reserved_to": "2026-10-01T20:00:00+03:00",
+        "dining_table_uuids": [
+            "{{dining_table_uuid}}"
+        ],
+        "payment_method_uuid": "{{payment_method_uuid}}",
+        "received_amount": "10000.00",
+        "notes": "Deposit collected at reservation time."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const json = pm.response.json();
+      if (json.data && json.data.uuid) pm.environment.set('reservation_uuid', json.data.uuid);
+    language: text/javascript
+order: 2000

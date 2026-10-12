@@ -18,6 +18,12 @@ class MenuItemPolicy extends MenuManagePolicy
         return $this->canManageMenu($user, $branch);
     }
 
+    public function view(User $user, MenuItem $menuItem, Branch $branch): bool
+    {
+        return $menuItem->company_id === $branch->company_id
+            && $this->canManageMenu($user, $branch);
+    }
+
     public function update(User $user, MenuItem $menuItem, Branch $branch): bool
     {
         return $menuItem->company_id === $branch->company_id

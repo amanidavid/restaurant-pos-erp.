@@ -7,4 +7,4 @@ headers:
   X-Tenant-UUID: "{{tenant_uuid}}"
 queryParams:
   branch_uuid: "{{branch_uuid}}"
-order: 5000
+order: 7000

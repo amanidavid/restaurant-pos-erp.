@@ -114,7 +114,7 @@ Error shape:
 ```json
 {
   "success": false,
-  "message": "Please check the highlighted details and try again.",
+  "message": "The request could not be completed because some information is missing or invalid.",
   "data": null,
   "errors": {}
 }

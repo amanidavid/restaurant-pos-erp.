@@ -21,6 +21,11 @@ class Payment extends TenantModel
         return $this->belongsTo(Order::class);
     }
 
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class);
+    }
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);

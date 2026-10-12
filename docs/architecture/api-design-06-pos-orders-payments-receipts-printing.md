@@ -1085,7 +1085,7 @@ Example validation error:
 ```json
 {
   "success": false,
-  "message": "Please check the highlighted details and try again.",
+  "message": "At least one order item is required.",
   "data": null,
   "errors": {
     "items": ["At least one order item is required."]

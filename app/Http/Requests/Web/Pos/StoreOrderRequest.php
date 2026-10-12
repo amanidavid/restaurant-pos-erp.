@@ -19,7 +19,9 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sales_channel_uuid' => ['required', 'uuid'],
+            // Service type is the only required order classification. Sales
+            // channel remains optional for reporting/backward compatibility.
+            'sales_channel_uuid' => ['nullable', 'uuid'],
             'service_type_uuid' => ['required', 'uuid'],
             'counter_uuid' => ['nullable', 'uuid'],
             'dining_table_uuid' => ['nullable', 'uuid'],

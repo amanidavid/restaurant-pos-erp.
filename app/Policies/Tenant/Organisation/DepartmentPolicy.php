@@ -21,9 +21,15 @@ class DepartmentPolicy
         return $this->viewAny($user, $branch);
     }
 
+    public function view(User $user, Department $department, Branch $branch): bool
+    {
+        return $this->access->canManage($user, 'hr.manage', $branch)
+            && $department->branch_id === $branch->id;
+    }
+
     public function update(User $user, Department $department, Branch $branch): bool
     {
         return $this->access->canManage($user, 'hr.manage', $branch)
-            && ($department->branch_id === null || $department->branch_id === $branch->id);
+            && $department->branch_id === $branch->id;
     }
 }

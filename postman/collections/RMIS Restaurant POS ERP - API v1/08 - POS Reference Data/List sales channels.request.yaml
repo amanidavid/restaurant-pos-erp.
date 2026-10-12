@@ -1,0 +1,11 @@
+$kind: http-request
+description: "Required permission: sales_channels.view."
+url: "{{base_url}}/api/v1/web/sales-channels?status=active&per_page={{per_page}}"
+method: GET
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+queryParams:
+  status: active
+  per_page: "{{per_page}}"
+order: 1000

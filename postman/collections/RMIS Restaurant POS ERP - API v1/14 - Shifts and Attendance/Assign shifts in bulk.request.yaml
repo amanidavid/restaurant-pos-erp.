@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/shift-assignments/batch"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "shift_groups": [
+            {
+                "shift_definition_uuid": "{{shift_definition_uuid}}",
+                "staff": [
+                    {
+                        "tenant_user_uuid": "{{tenant_user_uuid}}",
+                        "date_ranges": [
+                            {
+                                "valid_from": "2026-10-01",
+                                "valid_to": "2026-10-31"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+order: 6000

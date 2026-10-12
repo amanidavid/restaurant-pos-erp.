@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/web/hr/attendance-records/manual"
+method: POST
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "tenant_user_uuid": "{{tenant_user_uuid}}",
+        "attendance_date": "2026-10-01",
+        "shift_definition_uuid": "{{shift_definition_uuid}}",
+        "status": "present",
+        "reason": "Recorded by an authorised staff member."
+    }
+order: 14000

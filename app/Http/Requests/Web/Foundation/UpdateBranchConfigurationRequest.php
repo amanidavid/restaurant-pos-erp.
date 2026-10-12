@@ -3,11 +3,13 @@
 namespace App\Http\Requests\Web\Foundation;
 
 use App\Http\Requests\Concerns\HasApiValidationMessages;
+use App\Http\Requests\Web\Foundation\Concerns\NormalizesBusinessDayTimes;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBranchConfigurationRequest extends FormRequest
 {
     use HasApiValidationMessages;
+    use NormalizesBusinessDayTimes;
 
     public function authorize(): bool
     {
@@ -25,5 +27,10 @@ class UpdateBranchConfigurationRequest extends FormRequest
             'business_day_closes_at' => ['required', 'date_format:H:i'],
             'allow_negative_stock' => ['required', 'boolean'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge($this->normalizeBusinessDayTimes($this->all()));
     }
 }

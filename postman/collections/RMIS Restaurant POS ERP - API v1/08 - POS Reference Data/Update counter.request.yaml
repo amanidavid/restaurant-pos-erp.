@@ -1,0 +1,17 @@
+$kind: http-request
+description: "Required permission: counters.update."
+url: "{{base_url}}/api/v1/web/counters/{{counter_uuid}}"
+method: PATCH
+headers:
+  Accept: application/json
+  X-Tenant-UUID: "{{tenant_uuid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+        "name": "Main Cashier",
+        "type": "pos",
+        "status": "active"
+    }
+order: 6000

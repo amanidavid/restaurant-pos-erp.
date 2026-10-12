@@ -29,6 +29,11 @@ class TenantAccessSeeder extends Seeder
             'business_dates.view' => 'View current business day',
             'business_dates.open' => 'Open business day',
             'business_dates.close' => 'Close business day',
+            'cash_reconciliations.view' => 'View cash reconciliations',
+            'cash_reconciliations.open' => 'Open cash reconciliations',
+            'cash_reconciliations.count' => 'Enter cash denomination counts',
+            'cash_reconciliations.close' => 'Close cash reconciliations',
+            'cash_movements.create' => 'Record controlled cash movements',
             'permissions.view' => 'View permission catalogue',
             'roles.view' => 'View roles',
             'roles.create' => 'Create custom roles',
@@ -50,6 +55,28 @@ class TenantAccessSeeder extends Seeder
             'orders.send_to_kitchen' => 'Send orders to kitchen',
             'orders.serve' => 'Mark ready order items as served',
             'orders.close' => 'Close fully paid orders',
+            'customers.view' => 'View customers',
+            'customers.create' => 'Create customers',
+            'customers.update' => 'Update customers',
+            'reservations.view' => 'View reservations',
+            'reservations.create' => 'Create paid reservations',
+            'reservations.update' => 'Update pending reservations',
+            'reservations.seat' => 'Seat reservations',
+            'reservations.complete' => 'Complete reservations',
+            'reservations.cancel' => 'Cancel reservations',
+            'reservations.no_show' => 'Mark reservation no show',
+            'sales_channels.view' => 'View sales channels',
+            'service_types.view' => 'View service types',
+            'payment_methods.view' => 'View payment methods',
+            'counters.view' => 'View counters',
+            'counters.create' => 'Create counters',
+            'counters.update' => 'Update counters',
+            'dining_areas.view' => 'View dining areas',
+            'dining_areas.create' => 'Create dining areas',
+            'dining_areas.update' => 'Update dining areas',
+            'dining_tables.view' => 'View dining tables',
+            'dining_tables.create' => 'Create dining tables',
+            'dining_tables.update' => 'Update dining tables',
             'payments.collect' => 'Collect payments',
             'payments.create' => 'Create completed manual payments',
             'receipts.issue' => 'Issue receipts',
@@ -77,6 +104,7 @@ class TenantAccessSeeder extends Seeder
             'payroll.manage' => 'Manage payroll',
             'hr.manage' => 'Manage HR records',
             'attendance.manage' => 'Manage attendance and shifts',
+            'shifts.view_own' => 'View own shift schedule',
             'reports.sales.view' => 'View sales reports',
             'reports.finance.view' => 'View finance reports',
             'reports.payroll.view' => 'View payroll reports',
@@ -119,6 +147,11 @@ class TenantAccessSeeder extends Seeder
                     'business_dates.view',
                     'business_dates.open',
                     'business_dates.close',
+                    'cash_reconciliations.view',
+                    'cash_reconciliations.open',
+                    'cash_reconciliations.count',
+                    'cash_reconciliations.close',
+                    'cash_movements.create',
                     'orders.view',
                     'orders.update',
                     'orders.cancel',
@@ -307,6 +340,11 @@ class TenantAccessSeeder extends Seeder
                 ],
             ],
         ];
+
+        foreach ($roles as &$role) {
+            $role[1] = array_values(array_unique([...$role[1], 'shifts.view_own']));
+        }
+        unset($role);
 
         foreach ($roles as $name => [$displayName, $rolePermissions]) {
             $roleId = $this->upsertRow(self::CONNECTION, 'roles', [

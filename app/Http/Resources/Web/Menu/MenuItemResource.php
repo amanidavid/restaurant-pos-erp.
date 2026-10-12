@@ -26,6 +26,12 @@ class MenuItemResource extends JsonResource
                 'uuid' => $this->taxCode->uuid,
                 'name' => $this->taxCode->name,
             ] : null),
+            'modifier_groups' => $this->when(
+                $this->relationLoaded('modifierGroups'),
+                fn () => ModifierGroupResource::collection(
+                    $this->modifierGroups->pluck('modifierGroup')->filter()->values()
+                ),
+            ),
             'branch_menu_items' => BranchMenuItemResource::collection($this->whenLoaded('branchMenuItems')),
         ];
     }
